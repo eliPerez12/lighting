@@ -1,5 +1,6 @@
 #version 330
 
+uniform sampler2D textureSampler;  // Input texture
 uniform vec2 screenSize;
 
 void main() {
@@ -7,8 +8,14 @@ void main() {
     vec2 uv = gl_FragCoord.xy / screenSize;
 
     // Interpolate from white to black based on the y-coordinate
-    vec3 color = mix(vec3(1.0), vec3(0.0), uv.y);
+    float gradient = mix(1.0, 0.0, uv.y);
 
-    // Output the final color
-    gl_FragColor = vec4(color, 1.0);
+    // Sample the texture color
+    vec4 texColor = texture2D(textureSampler, uv);
+
+    // Apply the gradient as a mask to the texture color
+    vec3 finalColor = texColor.rgb * gradient;
+
+    // Output the final color with the original alpha
+    gl_FragColor = vec4(finalColor, texColor.a);
 }
