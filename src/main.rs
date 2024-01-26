@@ -1,30 +1,35 @@
 use raylib::prelude::*;
 
+
 fn main() {
     let (mut rl, thread) = raylib::init().width(630).height(480).resizable().build();
-
     let mut shader = rl.load_shader_from_memory(
         &thread,
-        // Some(include_str!("lighting.vs")),
         None,
         Some(include_str!("lighting.fs")),
     );
 
     let sh_screen_size_loc = shader.get_shader_location("screenSize");
+    let mut target = rl.load_render_texture(&thread, rl.get_screen_width() as u32, rl.get_screen_height() as u32).unwrap();
 
     while !rl.window_should_close() {
         /* ---- Update ---- */
-        let (screen_width, screen_height) = (rl.get_screen_width(), rl.get_screen_height());
-        let mut target = rl.load_render_texture(&thread, 640, 480).unwrap();
+        let screen_size = Vector2::new(rl.get_screen_width() as f32, rl.get_screen_height() as f32);
+
 
         /* ----- Draw ----- */
+        if rl.is_window_resized() {
+            target = rl.load_render_texture(&thread, rl.get_screen_width() as u32, rl.get_screen_height() as u32).unwrap();
+        }
         let mut d = rl.begin_drawing(&thread);
+
+
         d.clear_background(Color::BLACK);
 
-        // Update shaders
+        // Update shader with screen size
         shader.set_shader_value(
             sh_screen_size_loc,
-            Vector2::new(screen_width as f32, screen_height as f32),
+            screen_size,
         );
 
         // Drawing to target
