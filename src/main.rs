@@ -16,7 +16,7 @@ fn main() {
     
     let mut light_engine = LightEngine::new(&mut shader);
     //light_engine.spawn_light(Light::Radial { pos: Vector2::new(500.0, 500.0), color: Color::BLUE.into(), radius: 250.0});
-    light_engine.spawn_light(Light::Ambient { color: Vector4::new(1.0, 1.0, 1.0, 0.9)});
+    light_engine.spawn_light(Light::Ambient { color: Vector4::new(1.0, 1.0, 1.0, 0.1)});
 
     while !rl.window_should_close() {
         /* ---- Update ---- */
@@ -30,7 +30,10 @@ fn main() {
             light_engine.spawn_light(Light::Radial { pos: rl.get_mouse_position(), color: Color::BLUE.into(), radius: 350.0});
         }
         if rl.is_key_pressed(KeyboardKey::KEY_THREE) {
-            light_engine.spawn_light(Light::Radial { pos: rl.get_mouse_position(), color: Color::YELLOW.into(), radius: 350.0});
+            light_engine.spawn_light(Light::Radial { pos: rl.get_mouse_position(), color: Color::GREEN.into(), radius: 350.0});
+        }
+        if rl.is_key_pressed(KeyboardKey::KEY_FOUR) {
+            light_engine.spawn_light(Light::Radial { pos: rl.get_mouse_position(), color: Color::WHITE.into(), radius: 350.0});
         }
 
         /* ----- Draw ----- */
