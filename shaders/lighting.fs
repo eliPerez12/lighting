@@ -24,13 +24,14 @@ void main() {
             color_gradient += lightsColor[i].rgb * lightAlpha;
         }
         else {
+            float curveAmount = 2.0;
             // Calculate the normalized screen coordinates
             vec2 lightPosition = vec2(lightsPosition[i].x, -lightsPosition[i].y + screenSize.y);
             float worldDistanceToLight = distance(lightPosition, gl_FragCoord.xy);
 
             // Calculate the distance from the current pixel to the center of the light
             falloffFactor = 1.0 / (-max(0.0, 1.0 - worldDistanceToLight / lightsRadius[i]) / 2.0 + 1.0);
-            float cur_gradient = max(0.0, falloffFactor - 1.0);
+            float cur_gradient = max(0.0, pow((falloffFactor - 1.0), curveAmount));
 
             // Apply the gradient as a mask to the texture color
             color_gradient += cur_gradient * lightsColor[i].rgb * lightAlpha;
