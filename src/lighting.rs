@@ -88,12 +88,12 @@ impl LightEngine {
     pub fn get_mut_light(&mut self, light_handle: &LightHandle) -> &mut Light {
         self.lights.get_mut(&light_handle.0).unwrap()
     } 
-    pub fn update_shader_values(&self, shader: &mut Shader) {
+    pub fn update_shader_values(&self, shader: &mut Shader, camera: &Camera2D) {
         shader.set_shader_value_v(
             self.shader_uniforms.position,
             self.lights
                 .iter()
-                .map(|light| light.1.pos())
+                .map(|light| light.1.pos() + camera.offset)
                 .collect::<Vec<Vector2>>()
                 .as_slice(),
         );

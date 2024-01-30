@@ -3,47 +3,47 @@ use raylib::prelude::*;
 
 mod lighting;
 
-fn handle_spawning_light(rl: &mut RaylibHandle, light_engine: &mut LightEngine) {
+fn handle_spawning_light(rl: &mut RaylibHandle, light_engine: &mut LightEngine, camera: &Camera2D) {
     let light_radius = 800.0;
     if rl.is_key_pressed(KeyboardKey::KEY_ONE) {
         light_engine.spawn_light(Light::Radial {
-            pos: rl.get_mouse_position(),
+            pos: rl.get_mouse_position() - camera.offset,
             color: Color::RED.into(),
             radius: light_radius,
         });
     }
     if rl.is_key_pressed(KeyboardKey::KEY_TWO) {
         light_engine.spawn_light(Light::Radial {
-            pos: rl.get_mouse_position(),
+            pos: rl.get_mouse_position() - camera.offset,
             color: Color::BLUE.into(),
             radius: light_radius,
         });
     }
     if rl.is_key_pressed(KeyboardKey::KEY_THREE) {
         light_engine.spawn_light(Light::Radial {
-            pos: rl.get_mouse_position(),
+            pos: rl.get_mouse_position() - camera.offset,
             color: Color::YELLOW.into(),
             radius: light_radius,
         });
     }
     if rl.is_key_pressed(KeyboardKey::KEY_FOUR) {
         light_engine.spawn_light(Light::Radial {
-            pos: rl.get_mouse_position(),
+            pos: rl.get_mouse_position() - camera.offset,
             color: Color::WHITE.into(),
             radius: light_radius,
         });
     }
 }
 
-fn handle_mouse_light(rl: &mut RaylibHandle, light: &LightHandle, light_engine: &mut LightEngine) {
+fn handle_mouse_light(rl: &mut RaylibHandle, light: &LightHandle, light_engine: &mut LightEngine, camera: &Camera2D) {
     let light = light_engine.get_mut_light(light);
     if let Light::Radial{pos, ..} = light {
-        *pos = rl.get_mouse_position();
+        *pos = rl.get_mouse_position() - camera.offset;
     }
 }
 
 fn handle_camera_controls(rl: &mut RaylibHandle, camera: &mut Camera2D) {
-    let camera_speed = 1.0;
+    let camera_speed = 100.0 * rl.get_frame_time();
     if rl.is_key_down(KeyboardKey::KEY_W) {
         camera.offset.y += camera_speed;
     }
@@ -84,8 +84,8 @@ fn main() {
 
     while !rl.window_should_close() {
         /* ---- Update ---- */
-        handle_spawning_light(&mut rl, &mut light_engine);
-        handle_mouse_light(&mut rl, &mouse_light, &mut light_engine);
+        handle_spawning_light(&mut rl, &mut light_engine, &camera);
+        handle_mouse_light(&mut rl, &mouse_light, &mut light_engine, &camera);
         handle_camera_controls(&mut rl, &mut camera);
 
         /* ----- Draw ----- */
@@ -101,7 +101,7 @@ fn main() {
         // Update shader with screen size
         shader.set_shader_value(sh_screen_size_loc, screen_size);
 
-        light_engine.update_shader_values(&mut shader);
+        light_engine.update_shader_values(&mut shader, &camera);
 
         // Drawing to target
         {
