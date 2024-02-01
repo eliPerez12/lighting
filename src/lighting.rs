@@ -45,6 +45,7 @@ impl Light {
             Light::Ambient { .. } => 1,
         }
     }
+
 }
 
 struct ShaderUniforms {
@@ -53,6 +54,7 @@ struct ShaderUniforms {
     amount: i32,
     radius: i32,
     light_type: i32,
+    screen_size: i32,
 }
 
 pub struct LightEngine {
@@ -74,6 +76,7 @@ impl LightEngine {
                 amount: shader.get_shader_location("lightsAmount"),
                 radius: shader.get_shader_location("lightsRadius"),
                 light_type: shader.get_shader_location("lightsType"),
+                screen_size: shader.get_shader_location("screenSize"),
             },
         }
     }
@@ -87,8 +90,13 @@ impl LightEngine {
     }
     pub fn get_mut_light(&mut self, light_handle: &LightHandle) -> &mut Light {
         self.lights.get_mut(&light_handle.0).unwrap()
-    } 
-    pub fn update_shader_values(&self, shader: &mut Shader, camera: &Camera2D) {
+    }
+    pub fn update_shader_values(
+        &self,
+        shader: &mut Shader,
+        camera: &Camera2D,
+        screen_size: Vector2,
+    ) {
         shader.set_shader_value_v(
             self.shader_uniforms.position,
             self.lights
@@ -122,5 +130,51 @@ impl LightEngine {
                 .collect::<Vec<i32>>()
                 .as_slice(),
         );
+        shader.set_shader_value(self.shader_uniforms.screen_size, screen_size);
+    }
+
+    
+    pub fn handle_spawning_light(&mut self, rl: &mut RaylibHandle, camera: &Camera2D) {
+        let light_radius = 800.0;
+        if rl.is_key_pressed(KeyboardKey::KEY_ONE) {
+            self.spawn_light(Light::Radial {
+                pos: rl.get_mouse_position() - camera.offset,
+                color: Color::RED.into(),
+                radius: light_radius,
+            });
+        }
+        if rl.is_key_pressed(KeyboardKey::KEY_TWO) {
+            self.spawn_light(Light::Radial {
+                pos: rl.get_mouse_position() - camera.offset,
+                color: Color::BLUE.into(),
+                radius: light_radius,
+            });
+        }
+        if rl.is_key_pressed(KeyboardKey::KEY_THREE) {
+            self.spawn_light(Light::Radial {
+                pos: rl.get_mouse_position() - camera.offset,
+                color: Color::YELLOW.into(),
+                radius: light_radius,
+            });
+        }
+        if rl.is_key_pressed(KeyboardKey::KEY_FOUR) {
+            self.spawn_light(Light::Radial {
+                pos: rl.get_mouse_position() - camera.offset,
+                color: Color::WHITE.into(),
+                radius: light_radius,
+            });
+        }
+    }
+
+    pub fn handle_mouse_light(
+        &mut self,
+        rl: &mut RaylibHandle,
+        light: &LightHandle,
+        camera: &Camera2D,
+    ) {
+        let light = self.get_mut_light(light);
+        if let Light::Radial { pos, .. } = light {
+            *pos = rl.get_mouse_position() - camera.offset;
+        }
     }
 }
