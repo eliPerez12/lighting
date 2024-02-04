@@ -22,6 +22,20 @@ fn main() {
             rl.get_screen_height() as u32,
         )
         .unwrap();
+    let mut blank_target = rl
+        .load_render_texture(
+            &thread,
+            rl.get_screen_width() as u32,
+            rl.get_screen_height() as u32,
+        )
+        .unwrap();
+    let mut light_target = rl
+        .load_render_texture(
+            &thread,
+            rl.get_screen_width() as u32,
+            rl.get_screen_height() as u32,
+        )
+        .unwrap();
 
     let mut light_engine = LightEngine::new(&mut shader);
     light_engine.spawn_light(Light::Ambient {
@@ -60,11 +74,22 @@ fn main() {
             target = rl
                 .load_render_texture(&thread, screen_size.x as u32, screen_size.y as u32)
                 .unwrap();
+            blank_target = rl
+                .load_render_texture(&thread, screen_size.x as u32, screen_size.y as u32)
+                .unwrap();
+            light_target = rl
+                .load_render_texture(&thread, screen_size.x as u32, screen_size.y as u32)
+                .unwrap();
         }
         let mut d = rl.begin_drawing(&thread);
         d.clear_background(Color::BLACK);
         light_engine.update_shader_values(&mut shader, &camera, screen_size);
 
+        // Drawing to blank target
+        {
+            let mut blk = d.begin_texture_mode(&thread, &mut blank_target);
+            blk.draw_rectangle(0, 0, screen_size.x as i32, screen_size.y as i32, Color::WHITE);
+        }
         // Drawing to target
         {
             let mut tg = d.begin_texture_mode(&thread, &mut target);
@@ -125,9 +150,17 @@ fn main() {
         }
         {
             // Render target with shader
-            let mut sh = d.begin_shader_mode(&shader);
-            sh.draw_texture(&target, 0, 0, Color::WHITE);
+            let mut tg = d.begin_texture_mode(&thread, &mut light_target);
+            let mut sh = tg.begin_shader_mode(&shader);
+            sh.draw_rectangle(0, 0, screen_size.x as i32, screen_size.y as i32, Color::WHITE);
+            sh.draw_texture(&blank_target, 0, 0, Color::WHITE);
         }
+        {
+            let mut tg = d.begin_texture_mode(&thread, &mut target);
+            let mut bld = tg.begin_blend_mode(BlendMode::BLEND_MULTIPLIED);
+            bld.draw_texture(&light_target, 0, 0, Color::WHITE);
+        }
+        d.draw_texture(&target, 0, 0, Color::WHITE);
         d.draw_fps(0, 0);
         dbg!(player.pos);
     }
