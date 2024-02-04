@@ -10,6 +10,8 @@ pub struct Player {
 
 impl Player {
     pub const RENDER_SIZE: Vector2 = Vector2::new(100.0, 161.0);
+    const FRAME_AMOUNT: usize = 4;
+    const FRAME_TIME: f32 = 0.018;
     pub fn new(rl: &mut RaylibHandle, thread: &RaylibThread) -> Player {
         Player {
             pos: Vector2::zero(),
@@ -39,8 +41,22 @@ impl Player {
             self.pos.x += player_speed;
         }
 
+
+        // If player is trying to ads
         if rl.is_key_down(KeyboardKey::KEY_SPACE) {
-            self.elapsed_time = rl.get_frame_time();
+            if self.elapsed_time > Self::FRAME_TIME || self.current_frame == 0 {
+                if self.current_frame < Self::FRAME_AMOUNT {
+                    self.current_frame += 1;
+                }
+                self.elapsed_time = 0.0;
+            }
+            self.elapsed_time += rl.get_frame_time();
+        } else if self.current_frame > 0 {
+            if self.elapsed_time <= - Self::FRAME_TIME || self.current_frame == Self::FRAME_AMOUNT{
+                self.current_frame -= 1;
+                self.elapsed_time = 0.0;
+            }
+            self.elapsed_time -= rl.get_frame_time();
         }
     }
 }
