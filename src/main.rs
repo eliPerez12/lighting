@@ -3,7 +3,7 @@ use player::*;
 use raylib::prelude::*;
 
 mod lighting;
-mod player;
+mod player; 
 
 fn main() {
     let (mut rl, thread) = raylib::init()
