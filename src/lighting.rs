@@ -2,6 +2,11 @@
 use raylib::prelude::*;
 use std::collections::HashMap;
 
+pub const AMBIENT_LIGHT_NIGHT: Light = Light::Ambient { color: Vector4::new(0.7, 0.7, 1.0, 0.25) };
+pub const AMBIENT_LIGHT_MIDNIGHT: Light = Light::Ambient { color: Vector4::new(0.7, 0.7, 1.0, 0.08) };
+pub const AMBIENT_LIGHT_SUNRISE: Light = Light::Ambient { color: Vector4::new(1.0, 0.7, 0.5, 0.5) };
+pub const AMBIENT_LIGHT_DAY: Light = Light::Ambient { color: Vector4::new(1.0, 1.0, 1.0, 1.0) };
+
 pub enum Light {
     Radial {
         pos: Vector2,

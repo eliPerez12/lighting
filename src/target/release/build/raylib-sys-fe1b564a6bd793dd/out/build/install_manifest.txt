@@ -1,0 +1,7 @@
+C:/Users/Eli/Desktop/Projects/lighting/target/release/build/raylib-sys-fe1b564a6bd793dd/out/lib/raylib.lib
+C:/Users/Eli/Desktop/Projects/lighting/target/release/build/raylib-sys-fe1b564a6bd793dd/out/include/raylib.h
+C:/Users/Eli/Desktop/Projects/lighting/target/release/build/raylib-sys-fe1b564a6bd793dd/out/include/rlgl.h
+C:/Users/Eli/Desktop/Projects/lighting/target/release/build/raylib-sys-fe1b564a6bd793dd/out/include/raymath.h
+C:/Users/Eli/Desktop/Projects/lighting/target/release/build/raylib-sys-fe1b564a6bd793dd/out/lib/pkgconfig/raylib.pc
+C:/Users/Eli/Desktop/Projects/lighting/target/release/build/raylib-sys-fe1b564a6bd793dd/out/lib/cmake/raylib/raylib-config-version.cmake
+C:/Users/Eli/Desktop/Projects/lighting/target/release/build/raylib-sys-fe1b564a6bd793dd/out/lib/cmake/raylib/raylib-config.cmake

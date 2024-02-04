@@ -1,0 +1,116 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\raylib\src\rcore.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\raylib\src\rmodels.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\raylib\src\rshapes.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\raylib\src\rtext.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\raylib\src\rtextures.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\raylib\src\utils.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\raylib\src\raudio.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\raylib\src\raylib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\raylib\src\rlgl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\raylib\src\raymath.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\raylib\src\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\build\raylib\external\glfw\src\glfw.dir\$(Configuration)\context.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\build\raylib\external\glfw\src\glfw.dir\$(Configuration)\init.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\build\raylib\external\glfw\src\glfw.dir\$(Configuration)\input.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\build\raylib\external\glfw\src\glfw.dir\$(Configuration)\monitor.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\build\raylib\external\glfw\src\glfw.dir\$(Configuration)\platform.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\build\raylib\external\glfw\src\glfw.dir\$(Configuration)\vulkan.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\build\raylib\external\glfw\src\glfw.dir\$(Configuration)\window.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\build\raylib\external\glfw\src\glfw.dir\$(Configuration)\egl_context.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\build\raylib\external\glfw\src\glfw.dir\$(Configuration)\osmesa_context.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\build\raylib\external\glfw\src\glfw.dir\$(Configuration)\null_init.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\build\raylib\external\glfw\src\glfw.dir\$(Configuration)\null_monitor.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\build\raylib\external\glfw\src\glfw.dir\$(Configuration)\null_window.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\build\raylib\external\glfw\src\glfw.dir\$(Configuration)\null_joystick.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\build\raylib\external\glfw\src\glfw.dir\$(Configuration)\win32_module.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\build\raylib\external\glfw\src\glfw.dir\$(Configuration)\win32_time.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\build\raylib\external\glfw\src\glfw.dir\$(Configuration)\win32_thread.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\build\raylib\external\glfw\src\glfw.dir\$(Configuration)\win32_init.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\build\raylib\external\glfw\src\glfw.dir\$(Configuration)\win32_joystick.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\build\raylib\external\glfw\src\glfw.dir\$(Configuration)\win32_monitor.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\build\raylib\external\glfw\src\glfw.dir\$(Configuration)\win32_window.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="C:\Users\Eli\Desktop\Projects\lighting\target\debug\build\raylib-sys-cdcac81069561ab2\out\build\raylib\external\glfw\src\glfw.dir\$(Configuration)\wgl_context.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{E88B1E2F-917A-3827-9777-176B1A27E780}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Object Libraries">
+      <UniqueIdentifier>{067602FE-11E5-3FC0-BF40-95C0F340A9F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4E729C04-8783-3F50-9946-014EAE7D03DB}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

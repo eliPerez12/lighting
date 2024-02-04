@@ -3,13 +3,14 @@ use player::*;
 use raylib::prelude::*;
 
 mod lighting;
-mod player; 
+mod player;
 
 fn main() {
     let (mut rl, thread) = raylib::init()
         .vsync()
         .width(1000)
         .height(700)
+        .title("Lighting")
         .resizable()
         .build();
     let mut shader =
@@ -22,25 +23,9 @@ fn main() {
             rl.get_screen_height() as u32,
         )
         .unwrap();
-    let mut blank_target = rl
-        .load_render_texture(
-            &thread,
-            rl.get_screen_width() as u32,
-            rl.get_screen_height() as u32,
-        )
-        .unwrap();
-    let mut light_target = rl
-        .load_render_texture(
-            &thread,
-            rl.get_screen_width() as u32,
-            rl.get_screen_height() as u32,
-        )
-        .unwrap();
 
     let mut light_engine = LightEngine::new(&mut shader);
-    light_engine.spawn_light(Light::Ambient {
-        color: Vector4::new(1.0, 1.0, 1.0, 0.0),
-    });
+    let ambient_light = light_engine.spawn_light(AMBIENT_LIGHT_DAY);
     let mut camera = Camera2D {
         offset: Vector2::zero(),
         ..Default::default()
@@ -48,16 +33,10 @@ fn main() {
     let mouse_light = light_engine.spawn_light(Light::Radial {
         pos: Vector2::zero(),
         color: Color::WHITE.into(),
-        radius: 350.0,
+        radius: 150.0,
     });
-    let _ambient_light = light_engine.spawn_light(Light::Ambient {
-        color: Vector4::new(1.0, 1.0, 1.0, 0.3),
-    });
-
     let background_texture = rl.load_texture(&thread, "background.png").unwrap();
-
     let mut player = Player::new(&mut rl, &thread);
-
     let mut rot = 0.0;
 
     while !rl.window_should_close() {
@@ -65,6 +44,19 @@ fn main() {
         let screen_size = Vector2::new(rl.get_screen_width() as f32, rl.get_screen_height() as f32);
         light_engine.handle_spawning_light(&mut rl, &camera);
         light_engine.handle_mouse_light(&mut rl, &mouse_light, &camera);
+        
+        if rl.is_key_pressed(KeyboardKey::KEY_NINE) {
+            light_engine.update_light(&ambient_light, AMBIENT_LIGHT_NIGHT);
+        }
+        if rl.is_key_pressed(KeyboardKey::KEY_ZERO) {
+            light_engine.update_light(&ambient_light, AMBIENT_LIGHT_MIDNIGHT);
+        }
+        if rl.is_key_pressed(KeyboardKey::KEY_EIGHT) {
+            light_engine.update_light(&ambient_light, AMBIENT_LIGHT_SUNRISE);
+        }
+        if rl.is_key_pressed(KeyboardKey::KEY_SEVEN) {
+            light_engine.update_light(&ambient_light, AMBIENT_LIGHT_DAY);
+        }
 
         player.handle_movement(&rl);
         camera.offset = -player.pos + screen_size / 2.0;
@@ -74,22 +66,11 @@ fn main() {
             target = rl
                 .load_render_texture(&thread, screen_size.x as u32, screen_size.y as u32)
                 .unwrap();
-            blank_target = rl
-                .load_render_texture(&thread, screen_size.x as u32, screen_size.y as u32)
-                .unwrap();
-            light_target = rl
-                .load_render_texture(&thread, screen_size.x as u32, screen_size.y as u32)
-                .unwrap();
         }
         let mut d = rl.begin_drawing(&thread);
         d.clear_background(Color::BLACK);
         light_engine.update_shader_values(&mut shader, &camera, screen_size);
 
-        // Drawing to blank target
-        {
-            let mut blk = d.begin_texture_mode(&thread, &mut blank_target);
-            blk.draw_rectangle(0, 0, screen_size.x as i32, screen_size.y as i32, Color::WHITE);
-        }
         // Drawing to target
         {
             let mut tg = d.begin_texture_mode(&thread, &mut target);
@@ -98,8 +79,8 @@ fn main() {
             //tg.draw_circle(mouse_x, mouse_y, 50.0, Color::BLUE);
 
             // Drawing world
-            for x in 0..10 {
-                for y in 0..10 {
+            for x in 0..15 {
+                for y in 0..15 {
                     tg.draw_texture_pro(
                         &background_texture,
                         Rectangle::new(
@@ -131,7 +112,7 @@ fn main() {
 
             // Drawing player
             tg.draw_texture_pro(
-                &player.frames[0],
+                &player.frames[player.current_frame],
                 Rectangle::new(0.0, 0.0, 26.0, 42.0),
                 Rectangle::new(
                     player_screen_pos.x,// - Player::RENDER_SIZE.x / 2.0,
@@ -150,18 +131,9 @@ fn main() {
         }
         {
             // Render target with shader
-            let mut tg = d.begin_texture_mode(&thread, &mut light_target);
-            let mut sh = tg.begin_shader_mode(&shader);
-            sh.draw_rectangle(0, 0, screen_size.x as i32, screen_size.y as i32, Color::WHITE);
-            sh.draw_texture(&blank_target, 0, 0, Color::WHITE);
+            let mut sh = d.begin_shader_mode(&shader);
+            sh.draw_texture(&target, 0, 0, Color::WHITE);
         }
-        {
-            let mut tg = d.begin_texture_mode(&thread, &mut target);
-            let mut bld = tg.begin_blend_mode(BlendMode::BLEND_MULTIPLIED);
-            bld.draw_texture(&light_target, 0, 0, Color::WHITE);
-        }
-        d.draw_texture(&target, 0, 0, Color::WHITE);
         d.draw_fps(0, 0);
-        dbg!(player.pos);
     }
 }

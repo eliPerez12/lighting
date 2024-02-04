@@ -10,6 +10,9 @@ uniform int lightsAmount;
 uniform float lightsRadius[MAX_LIGHTS];
 uniform int lightsType[MAX_LIGHTS];
 
+const int AMBIENT_LIGHT = 1;
+const int RADIAL_LIGHT = 0;
+
 void main() {
     vec2 uv = gl_FragCoord.xy / screenSize;
     vec3 color_gradient = vec3(0.0);
@@ -18,11 +21,11 @@ void main() {
 
     for (int i = 0; i < lightsAmount; i++) {
         float lightAlpha = lightsColor[i].a;
-        if (lightsType[i] == 1) {
+        if (lightsType[i] == AMBIENT_LIGHT) {
             color_gradient += lightsColor[i].rgb * lightAlpha;
         }
         else {
-            float curveAmount = 2.0;
+            float curveAmount = 1.5;
             // Calculate the normalized screen coordinates
             vec2 lightPosition = vec2(lightsPosition[i].x, -lightsPosition[i].y + screenSize.y);
             float worldDistanceToLight = distance(lightPosition, gl_FragCoord.xy);

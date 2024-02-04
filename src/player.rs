@@ -3,7 +3,7 @@ use raylib::prelude::*;
 pub struct Player {
     pub pos: Vector2,
     pub frames: Vec<Texture2D>,
-    pub current_frame: u32,
+    pub current_frame: usize,
     pub elapsed_time: f32,
 }
 
@@ -37,6 +37,10 @@ impl Player {
         }
         if rl.is_key_down(KeyboardKey::KEY_D) {
             self.pos.x += player_speed;
+        }
+
+        if rl.is_key_down(KeyboardKey::KEY_SPACE) {
+            self.elapsed_time = rl.get_frame_time();
         }
     }
 }
