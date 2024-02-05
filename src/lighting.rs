@@ -137,9 +137,7 @@ impl LightEngine {
         );
         shader.set_shader_value(self.shader_uniforms.screen_size, screen_size);
     }
-
-    
-    pub fn handle_spawning_light(&mut self, rl: &mut RaylibHandle, camera: &Camera2D) {
+    pub fn handle_spawning_light(&mut self, rl: &mut RaylibHandle, camera: &Camera2D, ambient_light: &LightHandle) {
         let light_radius = 800.0;
         if rl.is_key_pressed(KeyboardKey::KEY_ONE) {
             self.spawn_light(Light::Radial {
@@ -169,6 +167,19 @@ impl LightEngine {
                 radius: light_radius,
             });
         }
+        if rl.is_key_pressed(KeyboardKey::KEY_NINE) {
+            self.update_light(ambient_light, AMBIENT_LIGHT_NIGHT);
+        }
+        if rl.is_key_pressed(KeyboardKey::KEY_ZERO) {
+            self.update_light(ambient_light, AMBIENT_LIGHT_MIDNIGHT);
+        }
+        if rl.is_key_pressed(KeyboardKey::KEY_EIGHT) {
+            self.update_light(ambient_light, AMBIENT_LIGHT_SUNRISE);
+        }
+        if rl.is_key_pressed(KeyboardKey::KEY_SEVEN) {
+            self.update_light(ambient_light, AMBIENT_LIGHT_DAY);
+        }
+
     }
 
     pub fn handle_mouse_light(

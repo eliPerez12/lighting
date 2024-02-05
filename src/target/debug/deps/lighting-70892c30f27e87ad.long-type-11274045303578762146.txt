@@ -1,1 +1,0 @@
-&fn(raylib::prelude::Texture2D) -> raylib::prelude::Texture2D {<raylib::prelude::Texture2D as std::convert::From<raylib::prelude::Texture2D>>::from}

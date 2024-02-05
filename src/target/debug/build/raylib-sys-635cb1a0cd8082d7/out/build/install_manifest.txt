@@ -1,7 +1,0 @@
-C:/Users/Eli/Desktop/Projects/lighting/target/debug/build/raylib-sys-635cb1a0cd8082d7/out/lib/raylib.lib
-C:/Users/Eli/Desktop/Projects/lighting/target/debug/build/raylib-sys-635cb1a0cd8082d7/out/include/raylib.h
-C:/Users/Eli/Desktop/Projects/lighting/target/debug/build/raylib-sys-635cb1a0cd8082d7/out/include/rlgl.h
-C:/Users/Eli/Desktop/Projects/lighting/target/debug/build/raylib-sys-635cb1a0cd8082d7/out/include/raymath.h
-C:/Users/Eli/Desktop/Projects/lighting/target/debug/build/raylib-sys-635cb1a0cd8082d7/out/lib/pkgconfig/raylib.pc
-C:/Users/Eli/Desktop/Projects/lighting/target/debug/build/raylib-sys-635cb1a0cd8082d7/out/lib/cmake/raylib/raylib-config-version.cmake
-C:/Users/Eli/Desktop/Projects/lighting/target/debug/build/raylib-sys-635cb1a0cd8082d7/out/lib/cmake/raylib/raylib-config.cmake
