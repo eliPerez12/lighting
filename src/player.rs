@@ -19,7 +19,7 @@ impl PlayerAnimation {
         PlayerAnimation {
             frames: (1..=5)
             .map(|i| {
-                rl.load_texture(thread, &format!("assets/player_body{i}.png"))
+                rl.load_texture(thread, &format!("assets/player/player_body{i}.png"))
                     .unwrap()
             })
             .collect::<Vec<Texture2D>>(),

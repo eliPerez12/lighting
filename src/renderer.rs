@@ -40,8 +40,8 @@ impl Renderer {
         tg.clear_background(Color::WHITE);
     
         // Drawing world
-        for x in 0..15 {
-            for y in 0..15 {
+        for x in 0..25 {
+            for y in 0..25 {
                 tg.draw_texture_pro(
                     &self.background_texture,
                     Rectangle::new(

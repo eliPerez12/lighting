@@ -5,7 +5,7 @@ use std::collections::HashMap;
 pub const AMBIENT_LIGHT_NIGHT: Light = Light::Ambient { color: Vector4::new(0.7, 0.7, 1.0, 0.25) };
 pub const AMBIENT_LIGHT_MIDNIGHT: Light = Light::Ambient { color: Vector4::new(0.7, 0.7, 1.0, 0.08) };
 pub const AMBIENT_LIGHT_SUNRISE: Light = Light::Ambient { color: Vector4::new(1.0, 0.7, 0.5, 0.5) };
-pub const AMBIENT_LIGHT_DAY: Light = Light::Ambient { color: Vector4::new(1.0, 1.0, 1.0, 1.0) };
+pub const AMBIENT_LIGHT_DAY: Light = Light::Ambient { color: Vector4::new(0.98, 0.98, 1.0, 0.95) };
 
 pub enum Light {
     Radial {
@@ -16,6 +16,13 @@ pub enum Light {
     Ambient {
         color: Vector4,
     },
+    Cone {
+        pos: Vector2,
+        color: Vector4,
+        radius: f32,
+        rotation: f32,
+        angle: f32,
+    }
 }
 
 impl Light {
@@ -30,24 +37,40 @@ impl Light {
         match self {
             Light::Radial { color, .. } => *color,
             Light::Ambient { color } => *color,
+            Light::Cone {color, .. } => *color,
         }
     }
     pub fn pos(&self) -> Vector2 {
         match self {
             Light::Radial { pos, .. } => *pos,
             Light::Ambient { .. } => Vector2::zero(),
+            Light::Cone {pos, .. } => *pos,
         }
     }
     pub fn radius(&self) -> f32 {
         match self {
             Light::Radial { radius, .. } => *radius,
             Light::Ambient { .. } => 0.0,
+            Light::Cone { radius, .. } => *radius,
         }
     }
     pub fn light_type(&self) -> i32 {
         match self {
             Light::Radial { .. } => 0,
             Light::Ambient { .. } => 1,
+            Light::Cone { .. } => 2,
+        }
+    }
+    pub fn rotation(&self) -> f32 {
+        match self {
+            Light::Cone { rotation, .. } => *rotation,
+            _ => 0.0,
+        }
+    }
+    pub fn angle(&self) -> f32 {
+        match self {
+            Light::Cone { angle, .. } => *angle,
+            _ => 0.0,
         }
     }
 
@@ -60,6 +83,8 @@ struct ShaderUniforms {
     radius: i32,
     light_type: i32,
     screen_size: i32,
+    rotation: i32,
+    angle: i32,
 }
 
 pub struct LightEngine {
@@ -81,6 +106,8 @@ impl LightEngine {
                 amount: shader.get_shader_location("lightsAmount"),
                 radius: shader.get_shader_location("lightsRadius"),
                 light_type: shader.get_shader_location("lightsType"),
+                rotation: shader.get_shader_location("lightsRotation"),
+                angle: shader.get_shader_location("lightsAngle"),
                 screen_size: shader.get_shader_location("screenSize"),
             },
         }
@@ -135,6 +162,22 @@ impl LightEngine {
                 .collect::<Vec<i32>>()
                 .as_slice(),
         );
+        shader.set_shader_value_v(
+            self.shader_uniforms.rotation,
+            self.lights
+                .iter()
+                .map(|light| light.1.rotation())
+                .collect::<Vec<f32>>()
+                .as_slice(),
+        );
+        shader.set_shader_value_v(
+            self.shader_uniforms.angle,
+            self.lights
+                .iter()
+                .map(|light| light.1.angle())
+                .collect::<Vec<f32>>()
+                .as_slice(),
+        );
         shader.set_shader_value(self.shader_uniforms.screen_size, screen_size);
     }
     pub fn handle_spawning_light(&mut self, rl: &mut RaylibHandle, camera: &Camera2D, ambient_light: &LightHandle) {
@@ -142,28 +185,28 @@ impl LightEngine {
         if rl.is_key_pressed(KeyboardKey::KEY_ONE) {
             self.spawn_light(Light::Radial {
                 pos: rl.get_mouse_position() - camera.offset,
-                color: Color::RED.into(),
+                color: Color::new(255, 244, 229, 255).into(),
                 radius: light_radius,
             });
         }
         if rl.is_key_pressed(KeyboardKey::KEY_TWO) {
             self.spawn_light(Light::Radial {
                 pos: rl.get_mouse_position() - camera.offset,
-                color: Color::BLUE.into(),
+                color: Color::RED.into(),
                 radius: light_radius,
             });
         }
         if rl.is_key_pressed(KeyboardKey::KEY_THREE) {
             self.spawn_light(Light::Radial {
                 pos: rl.get_mouse_position() - camera.offset,
-                color: Color::YELLOW.into(),
+                color: Color::BLUE.into(),
                 radius: light_radius,
             });
         }
         if rl.is_key_pressed(KeyboardKey::KEY_FOUR) {
             self.spawn_light(Light::Radial {
                 pos: rl.get_mouse_position() - camera.offset,
-                color: Color::WHITE.into(),
+                color: Color::YELLOW.into(),
                 radius: light_radius,
             });
         }
