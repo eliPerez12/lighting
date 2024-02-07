@@ -18,11 +18,11 @@ impl PlayerAnimation {
     fn new(rl: &mut RaylibHandle, thread: &RaylibThread) -> PlayerAnimation {
         PlayerAnimation {
             frames: (1..=5)
-            .map(|i| {
-                rl.load_texture(thread, &format!("assets/player/player_body{i}.png"))
-                    .unwrap()
-            })
-            .collect::<Vec<Texture2D>>(),
+                .map(|i| {
+                    rl.load_texture(thread, &format!("assets/player/player_body{i}.png"))
+                        .unwrap()
+                })
+                .collect::<Vec<Texture2D>>(),
             current_frame: 0,
             elapsed_time: 0.0,
         }
@@ -39,7 +39,7 @@ impl PlayerAnimation {
             }
             self.elapsed_time += rl.get_frame_time();
         } else if self.current_frame > 0 {
-            if self.elapsed_time <= - Self::FRAME_TIME || self.current_frame == Self::FRAME_AMOUNT{
+            if self.elapsed_time <= -Self::FRAME_TIME || self.current_frame == Self::FRAME_AMOUNT {
                 self.current_frame -= 1;
                 self.elapsed_time = 0.0;
             }
@@ -48,14 +48,12 @@ impl PlayerAnimation {
     }
 }
 
-
 impl Player {
     pub const RENDER_SIZE: Vector2 = Vector2::new(100.0, 161.0);
     pub fn new(rl: &mut RaylibHandle, thread: &RaylibThread) -> Player {
         Player {
             pos: Vector2::zero(),
             animation: PlayerAnimation::new(rl, thread),
-           
         }
     }
 

@@ -2,10 +2,18 @@
 use raylib::prelude::*;
 use std::collections::HashMap;
 
-pub const AMBIENT_LIGHT_NIGHT: Light = Light::Ambient { color: Vector4::new(0.7, 0.7, 1.0, 0.25) };
-pub const AMBIENT_LIGHT_MIDNIGHT: Light = Light::Ambient { color: Vector4::new(0.7, 0.7, 1.0, 0.08) };
-pub const AMBIENT_LIGHT_SUNRISE: Light = Light::Ambient { color: Vector4::new(1.0, 0.7, 0.5, 0.5) };
-pub const AMBIENT_LIGHT_DAY: Light = Light::Ambient { color: Vector4::new(0.98, 0.98, 1.0, 0.95) };
+pub const AMBIENT_LIGHT_NIGHT: Light = Light::Ambient {
+    color: Vector4::new(0.7, 0.7, 1.0, 0.25),
+};
+pub const AMBIENT_LIGHT_MIDNIGHT: Light = Light::Ambient {
+    color: Vector4::new(0.7, 0.7, 1.0, 0.08),
+};
+pub const AMBIENT_LIGHT_SUNRISE: Light = Light::Ambient {
+    color: Vector4::new(1.0, 0.7, 0.5, 0.5),
+};
+pub const AMBIENT_LIGHT_DAY: Light = Light::Ambient {
+    color: Vector4::new(0.98, 0.98, 1.0, 0.95),
+};
 
 pub enum Light {
     Radial {
@@ -22,7 +30,7 @@ pub enum Light {
         radius: f32,
         rotation: f32,
         angle: f32,
-    }
+    },
 }
 
 impl Light {
@@ -33,18 +41,28 @@ impl Light {
             radius: 350.0,
         }
     }
+
+    pub fn default_cone() -> Light {
+        Light::Cone {
+            pos: Vector2::new(0.0, 0.0),
+            color: Color::WHEAT.into(),
+            radius: 350.0,
+            rotation: 0.0,
+            angle: PI as f32 / 2.0,
+        }
+    }
     pub fn color(&self) -> Vector4 {
         match self {
             Light::Radial { color, .. } => *color,
             Light::Ambient { color } => *color,
-            Light::Cone {color, .. } => *color,
+            Light::Cone { color, .. } => *color,
         }
     }
     pub fn pos(&self) -> Vector2 {
         match self {
             Light::Radial { pos, .. } => *pos,
             Light::Ambient { .. } => Vector2::zero(),
-            Light::Cone {pos, .. } => *pos,
+            Light::Cone { pos, .. } => *pos,
         }
     }
     pub fn radius(&self) -> f32 {
@@ -73,7 +91,6 @@ impl Light {
             _ => 0.0,
         }
     }
-
 }
 
 struct ShaderUniforms {
@@ -180,7 +197,12 @@ impl LightEngine {
         );
         shader.set_shader_value(self.shader_uniforms.screen_size, screen_size);
     }
-    pub fn handle_spawning_light(&mut self, rl: &mut RaylibHandle, camera: &Camera2D, ambient_light: &LightHandle) {
+    pub fn handle_spawning_light(
+        &mut self,
+        rl: &mut RaylibHandle,
+        camera: &Camera2D,
+        ambient_light: &LightHandle,
+    ) {
         let light_radius = 800.0;
         if rl.is_key_pressed(KeyboardKey::KEY_ONE) {
             self.spawn_light(Light::Radial {
@@ -222,7 +244,6 @@ impl LightEngine {
         if rl.is_key_pressed(KeyboardKey::KEY_SEVEN) {
             self.update_light(ambient_light, AMBIENT_LIGHT_DAY);
         }
-
     }
 
     pub fn handle_mouse_light(

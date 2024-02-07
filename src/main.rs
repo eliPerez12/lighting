@@ -1,14 +1,11 @@
-use std::f32::consts::PI;
-
 use lighting::*;
 use player::*;
-use renderer::Renderer;
 use raylib::prelude::*;
+use renderer::Renderer;
 
 mod lighting;
 mod player;
 mod renderer;
-
 
 fn main() {
     let (mut rl, thread) = raylib::init()
@@ -30,13 +27,16 @@ fn main() {
     let mut player = Player::new(&mut rl, &thread);
     player.pos += Vector2::new(500.0, 500.0);
 
-    let cone = light_engine.spawn_light(Light::Cone {
-        pos: Vector2::new(-50.0,-50.0),
-        color: Color::WHEAT.into(), 
-        radius: 350.0,
-        rotation: 100.0,
-        angle: 90.0,
-    });
+    let cone = light_engine.spawn_light(Light::default_cone());
+    let mut flashlight_on = true;
+
+    let map = vec![
+        vec![0, 1, 2, 3, 4],
+        vec![0, 0, 0, 0, 0],
+        vec![0, 0, 0, 0, 0],
+        vec![0, 0, 0, 0, 0],
+        vec![0, 0, 0, 0, 0],
+    ];
 
     while !rl.window_should_close() {
         /* ---- Update ---- */
@@ -45,23 +45,37 @@ fn main() {
         player.handle_movement(&rl);
         camera.offset = -player.pos + screen_size / 2.0;
 
-                
+        if rl.is_key_pressed(KeyboardKey::KEY_F) {
+            flashlight_on = !flashlight_on;
+        }
+
         light_engine.handle_spawning_light(&mut rl, &camera, &ambient_light);
         //light_engine.handle_mouse_light(&mut rl, &mouse_light, &camera);
-        light_engine.update_light(&cone, Light::Cone {
-            pos: player.pos,
-            color: Color::WHEAT.into(), 
-            radius: 350.0,
-            angle: PI/2.0,
-            rotation: {
-                let player_pos = player.pos + camera.offset;
-                let mouse_pos = rl.get_mouse_position();
 
-                let dx = mouse_pos.x - player_pos.x;
-                let dy = -(mouse_pos.y - player_pos.y);
-                dy.atan2(dx) + PI
+        let player_screen_pos = player.pos + camera.offset;
+        let mouse_pos = rl.get_mouse_position();
+
+        camera.zoom = 0.5;
+
+        let dx = mouse_pos.x - player_screen_pos.x;
+        let dy = -(mouse_pos.y - player_screen_pos.y);
+
+        let rotation = dy.atan2(dx) + PI as f32;
+
+        light_engine.update_light(
+            &cone,
+            Light::Cone {
+                pos: player.pos + Vector2::new(dx, -dy).normalized() * 21.0,
+                color: if flashlight_on {
+                    Color::WHEAT.into()
+                } else {
+                    Color::BLACK.into()
+                },
+                radius: 550.0,
+                angle: PI as f32 / 2.0,
+                rotation,
             },
-        });
+        );
         renderer.update_target(&mut rl, &thread, screen_size);
 
         /* ----- Draw ----- */
@@ -69,7 +83,7 @@ fn main() {
         light_engine.update_shader_values(&mut renderer.shader, &camera, screen_size);
 
         // Drawing world
-        renderer.draw_world(&mut d, &thread, &player, &camera);
+        renderer.draw_world(&mut d, &thread, &player, &camera, &map);
 
         d.draw_fps(0, 0);
     }
