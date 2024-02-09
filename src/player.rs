@@ -49,7 +49,7 @@ impl PlayerAnimation {
 }
 
 impl Player {
-    pub const RENDER_SIZE: Vector2 = Vector2::new(100.0, 161.0);
+    pub const RENDER_SIZE: Vector2 = Vector2::new(26.0, 42.0);
     pub fn new(rl: &mut RaylibHandle, thread: &RaylibThread) -> Player {
         Player {
             pos: Vector2::zero(),
@@ -62,7 +62,7 @@ impl Player {
     }
 
     pub fn handle_movement(&mut self, rl: &RaylibHandle) {
-        let player_speed = 100.0 * rl.get_frame_time();
+        let player_speed = 40.0 * rl.get_frame_time();
         if rl.is_key_down(KeyboardKey::KEY_W) {
             self.pos.y -= player_speed;
         }

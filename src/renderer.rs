@@ -13,7 +13,7 @@ impl Renderer {
             shader: rl.load_shader_from_memory(
                 thread,
                 None,
-                Some(include_str!("../shaders/lighting.fs")),
+                Some(include_str!("../assets/shaders/lighting.fs")),
             ),
             target: rl
                 .load_render_texture(
@@ -49,24 +49,24 @@ impl Renderer {
         thread: &RaylibThread,
         player: &Player,
         camera: &Camera2D,
-        map: &Vec<Vec<i32>>,
+        floor_map: &Vec<Vec<i32>>,
     ) {
         let mut tg = d.begin_texture_mode(thread, &mut self.target);
-        tg.clear_background(Color::WHITE);
+        tg.clear_background(Color::BLACK);
 
         // Drawing world
-        for x in 0..map.len() {
-            (0..map[0].len()).for_each(|y| {
-                let texture = &self.background_textures[map[y][x] as usize];
-                let render_size = 80.0;
+        for x in 0..floor_map.len() {
+            (0..floor_map[0].len()).for_each(|y| {
+                let texture = &self.background_textures[floor_map[y][x] as usize];
+                let render_size = 32.0;
                 tg.draw_texture_pro(
                     texture,
                     Rectangle::new(0.0, 0.0, texture.width as f32, texture.height as f32),
                     Rectangle::new(
-                        x as f32 * render_size + camera.offset.x,
-                        y as f32 * render_size + camera.offset.y,
-                        render_size,
-                        render_size,
+                        (x as f32 * render_size + camera.offset.x) * camera.zoom,
+                        (y as f32 * render_size + camera.offset.y) * camera.zoom,
+                        render_size * camera.zoom,
+                        render_size * camera.zoom,
                     ),
                     Vector2::zero(),
                     0.0,
@@ -74,7 +74,7 @@ impl Renderer {
                 )
             });
         }
-        let player_screen_pos = player.pos + camera.offset;
+        let player_screen_pos = (player.pos + camera.offset) * camera.zoom;
         let mouse_pos = tg.get_mouse_position();
         let angle_to_mouse = (mouse_pos.y - player_screen_pos.y)
             .atan2(mouse_pos.x - player_screen_pos.x)
@@ -88,10 +88,10 @@ impl Renderer {
             Rectangle::new(
                 player_screen_pos.x, // - Player::RENDER_SIZE.x / 2.0,
                 player_screen_pos.y, // - Player::RENDER_SIZE.y / 2.0,
-                Player::RENDER_SIZE.x,
-                Player::RENDER_SIZE.y,
+                Player::RENDER_SIZE.x * camera.zoom,
+                Player::RENDER_SIZE.y * camera.zoom,
             ),
-            Player::RENDER_SIZE / 2.0,
+        (Player::RENDER_SIZE / 2.0) * camera.zoom,
             angle_to_mouse,
             Color::WHITE,
         );

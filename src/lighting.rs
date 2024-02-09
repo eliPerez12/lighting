@@ -154,7 +154,7 @@ impl LightEngine {
             self.shader_uniforms.position,
             self.lights
                 .iter()
-                .map(|light| light.1.pos() + camera.offset)
+                .map(|light| (light.1.pos() + camera.offset) * camera.zoom)
                 .collect::<Vec<Vector2>>()
                 .as_slice(),
         );
@@ -171,7 +171,7 @@ impl LightEngine {
             self.shader_uniforms.radius,
             self.lights
                 .iter()
-                .map(|light| light.1.radius())
+                .map(|light| light.1.radius() * camera.zoom)
                 .collect::<Vec<f32>>()
                 .as_slice(),
         );
@@ -203,30 +203,31 @@ impl LightEngine {
     }
     pub fn handle_spawning_light(&mut self, rl: &mut RaylibHandle, camera: &Camera2D) {
         let light_radius = 800.0;
+        let pos = rl.get_mouse_position()/camera.zoom - camera.offset;
         if rl.is_key_pressed(KeyboardKey::KEY_ONE) {
             self.spawn_light(Light::Radial {
-                pos: rl.get_mouse_position() - camera.offset,
+                pos,
                 color: Color::new(255, 244, 229, 255).into(),
                 radius: light_radius,
             });
         }
         if rl.is_key_pressed(KeyboardKey::KEY_TWO) {
             self.spawn_light(Light::Radial {
-                pos: rl.get_mouse_position() - camera.offset,
+                pos,
                 color: Color::RED.into(),
                 radius: light_radius,
             });
         }
         if rl.is_key_pressed(KeyboardKey::KEY_THREE) {
             self.spawn_light(Light::Radial {
-                pos: rl.get_mouse_position() - camera.offset,
+                pos,
                 color: Color::BLUE.into(),
                 radius: light_radius,
             });
         }
         if rl.is_key_pressed(KeyboardKey::KEY_FOUR) {
             self.spawn_light(Light::Radial {
-                pos: rl.get_mouse_position() - camera.offset,
+                pos,
                 color: Color::YELLOW.into(),
                 radius: light_radius,
             });

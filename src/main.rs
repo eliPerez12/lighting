@@ -14,7 +14,7 @@ struct DayCycle {
 }
 
 impl DayCycle {
-    const FULL_CYCLE_LENGTH: f32 = 20.0;
+    const FULL_CYCLE_LENGTH: f32 = 60.0;
     fn update(&mut self, rl: &mut RaylibHandle) {
         self.time += rl.get_frame_time();
         if self.time > Self::FULL_CYCLE_LENGTH {
@@ -23,7 +23,7 @@ impl DayCycle {
     }
     fn get_ambient_light(&self) -> Light {
         let normilized_time = self.time / Self::FULL_CYCLE_LENGTH;
-        let sunrise_length = 1.0 / 12.0;
+        let sunrise_length = 1.0 / 14.0;
 
         //  Sun rising
         if self.time < Self::FULL_CYCLE_LENGTH * sunrise_length {
@@ -82,7 +82,8 @@ fn main() {
     let cone = light_engine.spawn_light(Light::default_cone());
     let mut flashlight_on = true;
 
-    let mut map = vec![];
+    let mut floor_map = vec![];
+
 
     for _ in 0..100 {
         let mut line = vec![];
@@ -90,26 +91,38 @@ fn main() {
             let tile = rand::thread_rng().gen_range(0..5);
             line.push(tile);
         }
-        map.push(line);
+        floor_map.push(line);
     }
+
+    camera.zoom = 1.0;
 
     while !rl.window_should_close() {
         /* ---- Update ---- */
         let screen_size = Vector2::new(rl.get_screen_width() as f32, rl.get_screen_height() as f32);
 
         player.handle_movement(&rl);
-        camera.offset = -player.pos + screen_size / 2.0;
-        camera.zoom = 0.5;
 
         if rl.is_key_pressed(KeyboardKey::KEY_F) {
             flashlight_on = !flashlight_on;
         }
 
+        if rl.is_key_pressed(KeyboardKey::KEY_MINUS) {
+            camera.zoom /= 1.1;
+        }
+        if rl.is_key_pressed(KeyboardKey::KEY_EQUAL) {
+            camera.zoom *= 1.1;
+        }
+        if rl.is_key_pressed(KeyboardKey::KEY_BACKSPACE) {
+            camera.zoom = 1.0;
+        }
+
+        camera.offset = -player.pos + screen_size/2.0 / camera.zoom;
+
         day_cycle.update(&mut rl);
 
         light_engine.handle_spawning_light(&mut rl, &camera);
 
-        let player_screen_pos = player.pos + camera.offset;
+        let player_screen_pos = (player.pos + camera.offset) * camera.zoom;
         let mouse_pos = rl.get_mouse_position();
         let dx = mouse_pos.x - player_screen_pos.x;
         let dy = -(mouse_pos.y - player_screen_pos.y);
@@ -118,7 +131,7 @@ fn main() {
         light_engine.update_light(
             &cone,
             Light::Cone {
-                pos: player.pos + Vector2::new(dx, -dy).normalized() * 21.0,
+                pos: player.pos + Vector2::new(dx, -dy).normalized() * 5.0,
                 color: if flashlight_on {
                     Color::WHEAT.into()
                 } else {
@@ -141,7 +154,7 @@ fn main() {
         light_engine.update_shader_values(&mut renderer.shader, &camera, screen_size);
 
         // Drawing world
-        renderer.draw_world(&mut d, &thread, &player, &camera, &map);
+        renderer.draw_world(&mut d, &thread, &player, &camera, &floor_map);
 
         d.draw_fps(0, 0);
         let hour = (day_cycle.time / DayCycle::FULL_CYCLE_LENGTH * 24.0) as i32;
