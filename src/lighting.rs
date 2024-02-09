@@ -2,6 +2,8 @@
 use raylib::prelude::*;
 use std::collections::HashMap;
 
+use crate::ImprovedCamera;
+
 pub const AMBIENT_LIGHT_NIGHT: Light = Light::Ambient {
     color: Vector4::new(0.7, 0.7, 1.0, 0.25),
 };
@@ -202,8 +204,8 @@ impl LightEngine {
         shader.set_shader_value(self.shader_uniforms.screen_size, screen_size);
     }
     pub fn handle_spawning_light(&mut self, rl: &mut RaylibHandle, camera: &Camera2D) {
-        let light_radius = 800.0;
-        let pos = rl.get_mouse_position()/camera.zoom - camera.offset;
+        let light_radius = 350.0;
+        let pos = camera.to_world(rl.get_mouse_position());
         if rl.is_key_pressed(KeyboardKey::KEY_ONE) {
             self.spawn_light(Light::Radial {
                 pos,

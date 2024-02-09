@@ -1,4 +1,4 @@
-use crate::player::*;
+use crate::{player::*, ImprovedCamera};
 use raylib::prelude::*;
 
 pub struct Renderer {
@@ -74,7 +74,7 @@ impl Renderer {
                 )
             });
         }
-        let player_screen_pos = (player.pos + camera.offset) * camera.zoom;
+        let player_screen_pos = camera.to_screen(player.pos);
         let mouse_pos = tg.get_mouse_position();
         let angle_to_mouse = (mouse_pos.y - player_screen_pos.y)
             .atan2(mouse_pos.x - player_screen_pos.x)

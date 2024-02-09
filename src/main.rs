@@ -8,6 +8,22 @@ mod lighting;
 mod player;
 mod renderer;
 
+
+trait ImprovedCamera{
+    fn to_screen(&self, world_pos: Vector2) -> Vector2;
+    fn to_world(&self, screen_pos: Vector2) -> Vector2;
+}
+
+impl ImprovedCamera for Camera2D {
+    fn to_screen(&self, world_pos: Vector2) -> Vector2 {
+        (world_pos + self.offset) * self.zoom
+    }
+    fn to_world(&self, screen_pos: Vector2) -> Vector2 {
+        (screen_pos/self.zoom) - self.offset
+    }
+}
+
+
 struct DayCycle {
     time: f32,
     ambient_light_handle: LightHandle,
@@ -122,7 +138,7 @@ fn main() {
 
         light_engine.handle_spawning_light(&mut rl, &camera);
 
-        let player_screen_pos = (player.pos + camera.offset) * camera.zoom;
+        let player_screen_pos = camera.to_screen(player.pos);
         let mouse_pos = rl.get_mouse_position();
         let dx = mouse_pos.x - player_screen_pos.x;
         let dy = -(mouse_pos.y - player_screen_pos.y);
@@ -157,7 +173,7 @@ fn main() {
         renderer.draw_world(&mut d, &thread, &player, &camera, &floor_map);
 
         d.draw_fps(0, 0);
-        let hour = (day_cycle.time / DayCycle::FULL_CYCLE_LENGTH * 24.0) as i32;
+        let hour = ((day_cycle.time / DayCycle::FULL_CYCLE_LENGTH + 0.25) * 24.0) as i32;
         let minute = (day_cycle.time / DayCycle::FULL_CYCLE_LENGTH * 24.0 * 60.0 % 60.0) as i32;
         d.draw_text(
             &format!(
