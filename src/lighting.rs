@@ -6,13 +6,13 @@ pub const AMBIENT_LIGHT_NIGHT: Light = Light::Ambient {
     color: Vector4::new(0.7, 0.7, 1.0, 0.25),
 };
 pub const AMBIENT_LIGHT_MIDNIGHT: Light = Light::Ambient {
-    color: Vector4::new(0.7, 0.7, 1.0, 0.08),
+    color: Vector4::new(0.0, 0.0, 0.0, 1.0),
 };
 pub const AMBIENT_LIGHT_SUNRISE: Light = Light::Ambient {
     color: Vector4::new(1.0, 0.7, 0.5, 0.5),
 };
 pub const AMBIENT_LIGHT_DAY: Light = Light::Ambient {
-    color: Vector4::new(0.98, 0.98, 1.0, 0.95),
+    color: Vector4::new(1.0, 1.0, 1.0, 1.00),
 };
 
 pub enum Light {
@@ -41,7 +41,11 @@ impl Light {
             radius: 350.0,
         }
     }
-
+    pub fn default_ambient() -> Light {
+        Light::Ambient {
+            color: Color::WHITE.into(),
+        }
+    }
     pub fn default_cone() -> Light {
         Light::Cone {
             pos: Vector2::new(0.0, 0.0),
@@ -197,12 +201,7 @@ impl LightEngine {
         );
         shader.set_shader_value(self.shader_uniforms.screen_size, screen_size);
     }
-    pub fn handle_spawning_light(
-        &mut self,
-        rl: &mut RaylibHandle,
-        camera: &Camera2D,
-        ambient_light: &LightHandle,
-    ) {
+    pub fn handle_spawning_light(&mut self, rl: &mut RaylibHandle, camera: &Camera2D) {
         let light_radius = 800.0;
         if rl.is_key_pressed(KeyboardKey::KEY_ONE) {
             self.spawn_light(Light::Radial {
@@ -231,18 +230,6 @@ impl LightEngine {
                 color: Color::YELLOW.into(),
                 radius: light_radius,
             });
-        }
-        if rl.is_key_pressed(KeyboardKey::KEY_NINE) {
-            self.update_light(ambient_light, AMBIENT_LIGHT_NIGHT);
-        }
-        if rl.is_key_pressed(KeyboardKey::KEY_ZERO) {
-            self.update_light(ambient_light, AMBIENT_LIGHT_MIDNIGHT);
-        }
-        if rl.is_key_pressed(KeyboardKey::KEY_EIGHT) {
-            self.update_light(ambient_light, AMBIENT_LIGHT_SUNRISE);
-        }
-        if rl.is_key_pressed(KeyboardKey::KEY_SEVEN) {
-            self.update_light(ambient_light, AMBIENT_LIGHT_DAY);
         }
     }
 

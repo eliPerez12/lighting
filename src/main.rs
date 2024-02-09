@@ -1,11 +1,59 @@
 use lighting::*;
 use player::*;
+use rand::Rng;
 use raylib::prelude::*;
 use renderer::Renderer;
 
 mod lighting;
 mod player;
 mod renderer;
+
+struct DayCycle {
+    time: f32,
+    ambient_light_handle: LightHandle,
+}
+
+impl DayCycle {
+    const FULL_CYCLE_LENGTH: f32 = 20.0;
+    fn update(&mut self, rl: &mut RaylibHandle) {
+        self.time += rl.get_frame_time();
+        if self.time > Self::FULL_CYCLE_LENGTH {
+            self.time -= Self::FULL_CYCLE_LENGTH;
+        }
+    }
+    fn get_ambient_light(&self) -> Light {
+        let normilized_time = self.time / Self::FULL_CYCLE_LENGTH;
+        let sunrise_length = 1.0 / 12.0;
+
+        //  Sun rising
+        if self.time < Self::FULL_CYCLE_LENGTH * sunrise_length {
+            let light_level = normilized_time / sunrise_length;
+            Light::Ambient {
+                color: Vector4::new(1.0, 1.0, 1.0, light_level),
+            }
+        } 
+        // Sun setting
+        else if self.time >= Self::FULL_CYCLE_LENGTH * sunrise_length * 3.0
+        && normilized_time < 0.5 {
+            let light_level = (1.0 - normilized_time / sunrise_length) + (1.0/sunrise_length-2.0)/2.0;
+            Light::Ambient {
+                color: Vector4::new(1.0, 1.0, 1.0, light_level),
+            }
+        }
+        // Sun risen
+        else if normilized_time < 0.5 {
+            Light::Ambient {
+                color: Color::WHITE.into(),
+            }
+        } 
+        // Sun set
+        else {
+            Light::Ambient {
+                color: Color::BLACK.into(),
+            }
+        }
+    }
+}
 
 fn main() {
     let (mut rl, thread) = raylib::init()
@@ -17,7 +65,10 @@ fn main() {
         .build();
     let mut renderer = Renderer::new(&mut rl, &thread);
     let mut light_engine = LightEngine::new(&mut renderer.shader);
-    let ambient_light = light_engine.spawn_light(AMBIENT_LIGHT_SUNRISE);
+    let mut day_cycle = DayCycle {
+        time: 0.0,
+        ambient_light_handle: light_engine.spawn_light(Light::default_ambient()),
+    };
     let mut camera = Camera2D::default();
     let _smouse_light = light_engine.spawn_light(Light::Radial {
         pos: Vector2::zero(),
@@ -30,13 +81,16 @@ fn main() {
     let cone = light_engine.spawn_light(Light::default_cone());
     let mut flashlight_on = true;
 
-    let map = vec![
-        vec![0, 1, 2, 3, 4],
-        vec![0, 0, 0, 0, 0],
-        vec![0, 0, 0, 0, 0],
-        vec![0, 0, 0, 0, 0],
-        vec![0, 0, 0, 0, 0],
-    ];
+    let mut map = vec![];
+
+    for _ in 0..100 {
+        let mut line = vec![];
+        for _ in 0..100 {
+            let tile = rand::thread_rng().gen_range(0..5);
+            line.push(tile);
+        }
+        map.push(line);
+    }
 
     while !rl.window_should_close() {
         /* ---- Update ---- */
@@ -44,22 +98,20 @@ fn main() {
 
         player.handle_movement(&rl);
         camera.offset = -player.pos + screen_size / 2.0;
+        camera.zoom = 0.5;
 
         if rl.is_key_pressed(KeyboardKey::KEY_F) {
             flashlight_on = !flashlight_on;
         }
 
-        light_engine.handle_spawning_light(&mut rl, &camera, &ambient_light);
-        //light_engine.handle_mouse_light(&mut rl, &mouse_light, &camera);
+        day_cycle.update(&mut rl);
+
+        light_engine.handle_spawning_light(&mut rl, &camera);
 
         let player_screen_pos = player.pos + camera.offset;
         let mouse_pos = rl.get_mouse_position();
-
-        camera.zoom = 0.5;
-
         let dx = mouse_pos.x - player_screen_pos.x;
         let dy = -(mouse_pos.y - player_screen_pos.y);
-
         let rotation = dy.atan2(dx) + PI as f32;
 
         light_engine.update_light(
@@ -76,6 +128,11 @@ fn main() {
                 rotation,
             },
         );
+
+        light_engine.update_light(
+            &day_cycle.ambient_light_handle,
+            day_cycle.get_ambient_light(),
+        );
         renderer.update_target(&mut rl, &thread, screen_size);
 
         /* ----- Draw ----- */
@@ -86,5 +143,27 @@ fn main() {
         renderer.draw_world(&mut d, &thread, &player, &camera, &map);
 
         d.draw_fps(0, 0);
+        let hour = (day_cycle.time / DayCycle::FULL_CYCLE_LENGTH * 24.0) as i32;
+        let minute = (day_cycle.time / DayCycle::FULL_CYCLE_LENGTH * 24.0 * 60.0 % 60.0) as i32;
+        d.draw_text(
+            &format!(
+                "Time: {}:{}{} {}",
+                if hour % 12 == 0 { 12 } else { hour % 12 },
+                if minute < 10 { "0" } else { "" },
+                minute,
+                if hour < 12 { "AM" } else { "PM" }
+            ),
+            0,
+            0,
+            50,
+            Color::WHITE,
+        );
+        d.draw_text(
+            &format!("Raw Time: {}", day_cycle.time / DayCycle::FULL_CYCLE_LENGTH),
+            0,
+            60,
+            50,
+            Color::WHITE,
+        );
     }
 }
