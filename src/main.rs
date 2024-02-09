@@ -33,8 +33,9 @@ impl DayCycle {
             }
         } 
         // Sun setting
-        else if self.time >= Self::FULL_CYCLE_LENGTH * sunrise_length * 3.0
+        else if self.time >= Self::FULL_CYCLE_LENGTH * sunrise_length * (1.0/sunrise_length-2.0)/2.0
         && normilized_time < 0.5 {
+            dbg!("setting");
             let light_level = (1.0 - normilized_time / sunrise_length) + (1.0/sunrise_length-2.0)/2.0;
             Light::Ambient {
                 color: Vector4::new(1.0, 1.0, 1.0, light_level),
@@ -166,4 +167,11 @@ fn main() {
             Color::WHITE,
         );
     }
+}
+
+
+#[test]
+fn test() {
+    let sunrise_length = 1.0/10.0;
+    dbg!((1.0/sunrise_length-2.0)/2.0);
 }
