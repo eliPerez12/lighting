@@ -2,25 +2,40 @@ use lighting::*;
 use player::*;
 use rand::Rng;
 use raylib::prelude::*;
-use world::*;
 use renderer::Renderer;
+use world::*;
 
 mod lighting;
 mod player;
 mod renderer;
 mod world;
 
-trait ImprovedCamera {
-    fn to_screen(&self, world_pos: Vector2) -> Vector2;
-    fn to_world(&self, screen_pos: Vector2) -> Vector2;
+struct DebugInfo {
+    info: Vec<String>,
+    drawing: bool,
 }
 
-impl ImprovedCamera for Camera2D {
-    fn to_screen(&self, world_pos: Vector2) -> Vector2 {
-        (world_pos + self.offset) * self.zoom
+impl DebugInfo {
+    fn clear(&mut self) {
+        self.info = vec![];
+        self.info.push("(F1 to diable debug info)".to_string());
     }
-    fn to_world(&self, screen_pos: Vector2) -> Vector2 {
-        (screen_pos / self.zoom) - self.offset
+    fn add(&mut self, info: String) {
+        self.info.push(info)
+    }
+    fn draw(&self, d: &mut RaylibDrawHandle) {
+        if self.drawing {
+            let font_size = 40;
+            for (i, info) in self.info.iter().enumerate() {
+                d.draw_text(
+                    info,
+                    font_size / 5,
+                    i as i32 * font_size + 1 + font_size / 10,
+                    font_size,
+                    Color::WHITE,
+                );
+            }
+        }
     }
 }
 
@@ -37,6 +52,10 @@ fn main() {
     let mut day_cycle = DayCycle::new(&mut light_engine);
     let mut camera = Camera2D::default();
     let mut player = Player::new(&mut rl, &thread);
+    let mut debug_info = DebugInfo {
+        info: vec![],
+        drawing: true,
+    };
     player.pos += Vector2::new(500.0, 500.0);
 
     let cone = light_engine.spawn_light(Light::default_cone());
@@ -65,7 +84,11 @@ fn main() {
             flashlight_on = !flashlight_on;
         }
 
-        camera.zoom *= 1.0 + rl.get_mouse_wheel_move() / 70.0;
+        if rl.is_key_pressed(KeyboardKey::KEY_F1) {
+            debug_info.drawing = !debug_info.drawing;
+        }
+
+        camera.zoom *= 1.0 + rl.get_mouse_wheel_move() / 40.0;
 
         if rl.is_key_down(KeyboardKey::KEY_MINUS) {
             camera.zoom /= 1.04;
@@ -80,7 +103,10 @@ fn main() {
         camera.offset = -player.pos + screen_size / 2.0 / camera.zoom;
 
         day_cycle.update(&mut rl);
-
+        debug_info.clear();
+        debug_info.add(format!("FPS: {}", rl.get_fps()));
+        debug_info.add(format!("Frame time: {}", rl.get_frame_time()));
+        debug_info.add(day_cycle.get_debug_info());
         light_engine.handle_spawning_light(&mut rl, &camera);
 
         let player_screen_pos = camera.to_screen(player.pos);
@@ -117,7 +143,6 @@ fn main() {
         // Drawing world
         renderer.draw_world(&mut d, &thread, &player, &camera, &floor_map);
 
-        d.draw_fps(0, 0);
-        day_cycle.draw_debug_info(&mut d);
+        debug_info.draw(&mut d);
     }
 }

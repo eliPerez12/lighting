@@ -26,7 +26,7 @@ impl DayCycle {
     }
     pub fn get_ambient_light(&self) -> Light {
         let normilized_time = self.time / Self::FULL_CYCLE_LENGTH;
-        let sunrise_length = 1.0 / 9.0;
+        let sunrise_length = 1.0 / 8.0;
 
         //  Sun rising
         if self.time < Self::FULL_CYCLE_LENGTH * sunrise_length {
@@ -59,21 +59,29 @@ impl DayCycle {
             }
         }
     }
-    pub fn draw_debug_info(&self, d: &mut RaylibDrawHandle) {
+    pub fn get_debug_info(&self) -> String {
         let hour = ((self.time / DayCycle::FULL_CYCLE_LENGTH + 0.25) * 24.0) as i32;
         let minute = (self.time / DayCycle::FULL_CYCLE_LENGTH * 24.0 * 60.0 % 60.0) as i32;
-        d.draw_text(
-            &format!(
-                "Time: {}:{}{} {}",
-                if hour % 12 == 0 { 12 } else { hour % 12 },
-                if minute < 10 { "0" } else { "" },
-                minute,
-                if hour % 24 < 12 { "AM" } else { "PM" }
-            ),
-            0,
-            10,
-            50,
-            Color::WHITE,
-        );
+        format!(
+            "Game Time: {}:{}{} {}",
+            if hour % 12 == 0 { 12 } else { hour % 12 },
+            if minute < 10 { "0" } else { "" },
+            minute,
+            if hour % 24 < 12 { "AM" } else { "PM" }
+        )
+    }
+}
+
+pub trait ImprovedCamera {
+    fn to_screen(&self, world_pos: Vector2) -> Vector2;
+    fn to_world(&self, screen_pos: Vector2) -> Vector2;
+}
+
+impl ImprovedCamera for Camera2D {
+    fn to_screen(&self, world_pos: Vector2) -> Vector2 {
+        (world_pos + self.offset) * self.zoom
+    }
+    fn to_world(&self, screen_pos: Vector2) -> Vector2 {
+        (screen_pos / self.zoom) - self.offset
     }
 }

@@ -30,7 +30,8 @@ impl PlayerAnimation {
 
     pub fn handle_animation(&mut self, rl: &RaylibHandle) {
         // If player is trying to ADS
-        if rl.is_key_down(KeyboardKey::KEY_SPACE) {
+        if rl.is_mouse_button_down(MouseButton::MOUSE_BUTTON_RIGHT) ||
+        rl.is_key_down(KeyboardKey::KEY_SPACE) {
             if self.elapsed_time > Self::FRAME_TIME || self.current_frame == 0 {
                 if self.current_frame < Self::FRAME_AMOUNT {
                     self.current_frame += 1;

@@ -43,6 +43,7 @@ impl Renderer {
                 .unwrap();
         }
     }
+    
     pub fn draw_world(
         &mut self,
         d: &mut RaylibDrawHandle,
