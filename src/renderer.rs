@@ -22,7 +22,7 @@ impl Renderer {
                     rl.get_screen_height() as u32,
                 )
                 .unwrap(),
-            background_textures: (0..5)
+            background_textures: (0..=6)
                 .map(|i| {
                     rl.load_texture(thread, &format!("assets/background/background_{}.png", i))
                         .unwrap()
@@ -91,7 +91,7 @@ impl Renderer {
                 Player::RENDER_SIZE.x * camera.zoom,
                 Player::RENDER_SIZE.y * camera.zoom,
             ),
-        (Player::RENDER_SIZE / 2.0) * camera.zoom,
+            (Player::RENDER_SIZE / 2.0) * camera.zoom,
             angle_to_mouse,
             Color::WHITE,
         );

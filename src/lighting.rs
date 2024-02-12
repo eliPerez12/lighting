@@ -52,9 +52,9 @@ impl Light {
         Light::Cone {
             pos: Vector2::new(0.0, 0.0),
             color: Color::WHEAT.into(),
-            radius: 350.0,
+            radius: 300.0,
             rotation: 0.0,
-            angle: PI as f32 / 2.0,
+            angle: PI as f32 / 3.0,
         }
     }
     pub fn color(&self) -> Vector4 {
@@ -233,18 +233,6 @@ impl LightEngine {
                 color: Color::YELLOW.into(),
                 radius: light_radius,
             });
-        }
-    }
-
-    pub fn handle_mouse_light(
-        &mut self,
-        rl: &mut RaylibHandle,
-        light: &LightHandle,
-        camera: &Camera2D,
-    ) {
-        let light = self.get_mut_light(light);
-        if let Light::Radial { pos, .. } = light {
-            *pos = rl.get_mouse_position() - camera.offset;
         }
     }
 }
