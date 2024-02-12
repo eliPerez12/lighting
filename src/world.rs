@@ -26,7 +26,7 @@ impl DayCycle {
     }
     pub fn get_ambient_light(&self) -> Light {
         let normilized_time = self.time / Self::FULL_CYCLE_LENGTH;
-        let sunrise_length = 1.0 / 8.0;
+        let sunrise_length = 1.0 / 10.0;
 
         //  Sun rising
         if self.time < Self::FULL_CYCLE_LENGTH * sunrise_length {

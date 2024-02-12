@@ -56,8 +56,8 @@ impl Renderer {
         tg.clear_background(Color::BLACK);
 
         // Drawing world
-        for x in 0..floor_map.len() {
-            (0..floor_map[0].len()).for_each(|y| {
+        (0..floor_map.len()).for_each(|y| {
+            (0..floor_map[y].len()).for_each(|x| {
                 let texture = &self.background_textures[floor_map[y][x] as usize];
                 let render_size = 32.0;
                 tg.draw_texture_pro(
@@ -74,7 +74,7 @@ impl Renderer {
                     Color::WHITE,
                 )
             });
-        }
+        });
         let player_screen_pos = camera.to_screen(player.pos);
         let mouse_pos = tg.get_mouse_position();
         let angle_to_mouse = (mouse_pos.y - player_screen_pos.y)

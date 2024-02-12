@@ -1,6 +1,5 @@
 use lighting::*;
 use player::*;
-use rand::Rng;
 use raylib::prelude::*;
 use renderer::Renderer;
 use world::*;
@@ -39,6 +38,38 @@ impl DebugInfo {
     }
 }
 
+fn load_map(path: &str) -> Vec<Vec<i32>> {
+    let mut floor_map = vec![];
+    let map = std::fs::File::open(path).unwrap();
+    let mut reader = std::io::BufReader::new(map);
+    for _ in 0..5 {
+        std::io::BufRead::read_line(&mut reader, &mut String::new()).unwrap();
+    }
+
+    for y in 0..20 {
+        let mut floor_map_line = vec![];
+        let mut buffer = String::new();
+        std::io::BufRead::read_line(&mut reader, &mut buffer).unwrap();
+        let buffer = &buffer.replace("\r\n", "");
+        let line = buffer
+            .split(',')
+            .filter(|s| s != &"")
+            .map(|s| 
+            if let Ok(tile) = s.parse::<i32>() {
+                tile - 1
+            } else {
+                dbg!(s, y, buffer);
+                panic!("Unable to parse map");
+            })
+            .collect::<Vec<i32>>();
+        (0..30).for_each(|x| {
+            floor_map_line.push(line[x])
+        });
+        floor_map.push(floor_map_line);
+    }
+    floor_map
+}
+
 fn main() {
     let (mut rl, thread) = raylib::init()
         .vsync()
@@ -61,16 +92,7 @@ fn main() {
     let cone = light_engine.spawn_light(Light::default_cone());
     let mut flashlight_on = true;
 
-    let mut floor_map = vec![];
-
-    for _ in 0..100 {
-        let mut line = vec![];
-        for _ in 0..100 {
-            let tile = rand::thread_rng().gen_range(0..=6);
-            line.push(tile);
-        }
-        floor_map.push(line);
-    }
+    let floor_map = load_map("assets/maps/map0.tmx");
 
     camera.zoom = 3.5;
 
