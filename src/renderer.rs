@@ -3,7 +3,7 @@ use raylib::prelude::*;
 
 pub struct Renderer {
     target: RenderTexture2D,
-    background_tile_sheet: Texture2D,
+    floor_tile_sheet: Texture2D,
     wall_tile_sheet: Texture2D,
     pub shader: Shader,
 }
@@ -23,8 +23,8 @@ impl Renderer {
                     rl.get_screen_height() as u32,
                 )
                 .unwrap(),
-            background_tile_sheet: rl
-                .load_texture(thread, "assets/background/background_tile_sheet.png")
+            floor_tile_sheet: rl
+                .load_texture(thread, "assets/background/floor_tile_sheet.png")
                 .unwrap(),
             wall_tile_sheet: rl
                 .load_texture(thread, "assets/background/wall_tile_sheet.png")
@@ -60,14 +60,15 @@ impl Renderer {
         // Drawing background tiles
         (0..floor_map.len()).for_each(|y| {
             for x in 0..floor_map[y].len() {
-                let texture = &self.background_tile_sheet;
+                let texture = &self.floor_tile_sheet;
                 let render_size = 32.0;
                 let tile = floor_map[y][x];
                 if tile == 0 {
                     continue;
                 }
-                let tile_x = (tile - 1) % 30;
-                let tile_y = (tile - 1) / 20;
+                let texture_width = self.floor_tile_sheet.width() as i64 / render_size as i64;
+                let tile_x = (tile - 1) % texture_width;
+                let tile_y = (tile - 1) / texture_width;
                 tg.draw_texture_pro(
                     texture,
                     Rectangle::new(tile_x as f32 * 32.0, tile_y as f32 * 32.0, 32.0, 32.0),
@@ -92,8 +93,9 @@ impl Renderer {
                 if tile == 0 {
                     continue;
                 }
-                let tile_x = (tile - 65) % 3;
-                let tile_y = (tile - 65) / 3;
+                let texture_width = self.wall_tile_sheet.width() as i64 / render_size as i64;
+                let tile_x = (tile - 65) % texture_width;
+                let tile_y = (tile - 65) / texture_width;
                 tg.draw_texture_pro(
                     texture,
                     Rectangle::new(tile_x as f32 * 32.0, tile_y as f32 * 32.0, 32.0, 32.0),
