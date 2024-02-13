@@ -41,11 +41,11 @@ impl DebugInfo {
     }
 }
 
-
-fn load_map(path: &str) -> Vec<Vec<i64>> {
+fn load_map(path: &str) -> (Vec<Vec<i64>>, Vec<Vec<i64>>) {
     use std::io::BufRead;
 
     let mut floor_map = vec![];
+    let mut wall_map = vec![];
     let map = std::fs::File::open(path).unwrap();
     let mut reader = std::io::BufReader::new(map);
     // Skip first 6 lines of map data
@@ -61,20 +61,42 @@ fn load_map(path: &str) -> Vec<Vec<i64>> {
         let line = buffer
             .split(',')
             .filter(|s| s != &"")
-            .map(|s| 
-            if let Ok(tile) = s.parse::<i64>() {
-                tile - 1
-            } else {
-                dbg!(s, y, buffer);
-                panic!("Unable to parse map");
+            .map(|s| {
+                if let Ok(tile) = s.parse::<i64>() {
+                    tile
+                } else {
+                    dbg!(s, y, buffer);
+                    panic!("Unable to parse map");
+                }
             })
             .collect::<Vec<i64>>();
-        (0..30).for_each(|x| {
-            floor_map_line.push(line[x])
-        });
+        (0..30).for_each(|x| floor_map_line.push(line[x]));
         floor_map.push(floor_map_line);
     }
-    floor_map
+    for _ in 0..4 {
+        reader.read_line(&mut String::new()).unwrap();
+    }
+    for y in 0..20 {
+        let mut wall_map_line = vec![];
+        let mut buffer = String::new();
+        reader.read_line(&mut buffer).unwrap();
+        let buffer = &buffer.replace("\r\n", "");
+        let line = buffer
+            .split(',')
+            .filter(|s| s != &"")
+            .map(|s| {
+                if let Ok(tile) = s.parse::<i64>() {
+                    tile
+                } else {
+                    dbg!(s, y, buffer);
+                    panic!("Unable to parse map");
+                }
+            })
+            .collect::<Vec<i64>>();
+        (0..30).for_each(|x| wall_map_line.push(line[x]));
+        wall_map.push(wall_map_line);
+    }
+    (floor_map, wall_map)
 }
 
 fn main() {
@@ -99,7 +121,7 @@ fn main() {
     let cone = light_engine.spawn_light(Light::default_cone());
     let mut flashlight_on = true;
 
-    let floor_map= load_map("assets/maps/map0.tmx");
+    let (floor_map, wall_map) = load_map("assets/maps/map0.tmx");
 
     camera.zoom = 3.5;
 
@@ -111,7 +133,7 @@ fn main() {
         camera.handle_player_controls(&mut rl);
 
         camera.offset = -player.pos + screen_size / 2.0 / camera.zoom;
-        
+
         if rl.is_key_pressed(KeyboardKey::KEY_F) {
             flashlight_on = !flashlight_on;
         }
@@ -151,7 +173,7 @@ fn main() {
         light_engine.update_shader_values(&mut renderer.shader, &camera, screen_size);
 
         // Drawing world
-        renderer.draw_world(&mut d, &thread, &player, &camera, &floor_map);
+        renderer.draw_world(&mut d, &thread, &player, &camera, &floor_map, &wall_map);
 
         // Drawing UI
         debug_info.draw(&mut d);

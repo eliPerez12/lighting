@@ -20,10 +20,7 @@ impl DayCycle {
         if self.time > Self::FULL_CYCLE_LENGTH {
             self.time -= Self::FULL_CYCLE_LENGTH;
         };
-        light_engine.update_light(
-            self.ambient_light_handle(),
-            self.get_ambient_light(),
-        );
+        light_engine.update_light(self.ambient_light_handle(), self.get_ambient_light());
     }
     pub fn ambient_light_handle(&self) -> &LightHandle {
         &self.ambient_light_handle
@@ -76,7 +73,7 @@ impl DayCycle {
     }
 }
 
-// Adding additional methods to raylib camera2d 
+// Adding additional methods to raylib camera2d
 pub trait ImprovedCamera {
     fn to_screen(&self, world_pos: Vector2) -> Vector2;
     fn to_world(&self, screen_pos: Vector2) -> Vector2;

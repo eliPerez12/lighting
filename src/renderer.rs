@@ -4,6 +4,7 @@ use raylib::prelude::*;
 pub struct Renderer {
     target: RenderTexture2D,
     background_tile_sheet: Texture2D,
+    wall_tile_sheet: Texture2D,
     pub shader: Shader,
 }
 
@@ -22,9 +23,12 @@ impl Renderer {
                     rl.get_screen_height() as u32,
                 )
                 .unwrap(),
-            background_tile_sheet: 
-                rl.load_texture(thread, "assets/background/background_tile_sheet.png")
-                    .unwrap()
+            background_tile_sheet: rl
+                .load_texture(thread, "assets/background/background_tile_sheet.png")
+                .unwrap(),
+            wall_tile_sheet: rl
+                .load_texture(thread, "assets/background/wall_tile_sheet.png")
+                .unwrap(),
         }
     }
 
@@ -40,7 +44,7 @@ impl Renderer {
                 .unwrap();
         }
     }
-    
+
     pub fn draw_world(
         &mut self,
         d: &mut RaylibDrawHandle,
@@ -48,21 +52,25 @@ impl Renderer {
         player: &Player,
         camera: &Camera2D,
         floor_map: &Vec<Vec<i64>>,
+        wall_map: &Vec<Vec<i64>>,
     ) {
         let mut tg = d.begin_texture_mode(thread, &mut self.target);
         tg.clear_background(Color::BLACK);
 
-        // Drawing background tile
+        // Drawing background tiles
         (0..floor_map.len()).for_each(|y| {
-            (0..floor_map[y].len()).for_each(|x| {
+            for x in 0..floor_map[y].len() {
                 let texture = &self.background_tile_sheet;
                 let render_size = 32.0;
                 let tile = floor_map[y][x];
-                let tile_x = tile % 30;
-                let tile_y = tile / 20;
+                if tile == 0 {
+                    continue;
+                }
+                let tile_x = (tile - 1) % 30;
+                let tile_y = (tile - 1) / 20;
                 tg.draw_texture_pro(
                     texture,
-                    Rectangle::new(tile_x as f32 * 32.0,tile_y as f32 * 32.0, 32.0, 32.0),
+                    Rectangle::new(tile_x as f32 * 32.0, tile_y as f32 * 32.0, 32.0, 32.0),
                     Rectangle::new(
                         (x as f32 * render_size + camera.offset.x) * camera.zoom,
                         (y as f32 * render_size + camera.offset.y) * camera.zoom,
@@ -73,7 +81,33 @@ impl Renderer {
                     0.0,
                     Color::WHITE,
                 )
-            });
+            }
+        });
+        // Drawing wall tile
+        (0..wall_map.len()).for_each(|y| {
+            for x in 0..wall_map[y].len() {
+                let texture = &self.wall_tile_sheet;
+                let render_size = 32.0;
+                let tile = wall_map[y][x];
+                if tile == 0 {
+                    continue;
+                }
+                let tile_x = (tile - 65) % 3;
+                let tile_y = (tile - 65) / 3;
+                tg.draw_texture_pro(
+                    texture,
+                    Rectangle::new(tile_x as f32 * 32.0, tile_y as f32 * 32.0, 32.0, 32.0),
+                    Rectangle::new(
+                        (x as f32 * render_size + camera.offset.x) * camera.zoom,
+                        (y as f32 * render_size + camera.offset.y) * camera.zoom,
+                        render_size * camera.zoom + 0.01 * 32.0,
+                        render_size * camera.zoom + 0.01 * 32.0,
+                    ),
+                    Vector2::zero(),
+                    0.0,
+                    Color::WHITE,
+                )
+            }
         });
         let player_screen_pos = camera.to_screen(player.pos);
         let mouse_pos = tg.get_mouse_position();
