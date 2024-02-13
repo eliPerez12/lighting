@@ -15,8 +15,11 @@ struct DebugInfo {
 }
 
 impl DebugInfo {
-    fn clear(&mut self) {
+    fn update(&mut self, rl: &mut RaylibHandle) {
         self.info = vec![];
+        if rl.is_key_pressed(KeyboardKey::KEY_F1) {
+            self.drawing = !self.drawing;
+        }
         self.info.push("(F1 to diable debug info)".to_string());
     }
     fn add(&mut self, info: String) {
@@ -38,30 +41,34 @@ impl DebugInfo {
     }
 }
 
-fn load_map(path: &str) -> Vec<Vec<i32>> {
+
+fn load_map(path: &str) -> Vec<Vec<i64>> {
+    use std::io::BufRead;
+
     let mut floor_map = vec![];
     let map = std::fs::File::open(path).unwrap();
     let mut reader = std::io::BufReader::new(map);
-    for _ in 0..5 {
-        std::io::BufRead::read_line(&mut reader, &mut String::new()).unwrap();
+    // Skip first 6 lines of map data
+    for _ in 0..6 {
+        reader.read_line(&mut String::new()).unwrap();
     }
-
+    // Parsing background layer
     for y in 0..20 {
         let mut floor_map_line = vec![];
         let mut buffer = String::new();
-        std::io::BufRead::read_line(&mut reader, &mut buffer).unwrap();
+        reader.read_line(&mut buffer).unwrap();
         let buffer = &buffer.replace("\r\n", "");
         let line = buffer
             .split(',')
             .filter(|s| s != &"")
             .map(|s| 
-            if let Ok(tile) = s.parse::<i32>() {
+            if let Ok(tile) = s.parse::<i64>() {
                 tile - 1
             } else {
                 dbg!(s, y, buffer);
                 panic!("Unable to parse map");
             })
-            .collect::<Vec<i32>>();
+            .collect::<Vec<i64>>();
         (0..30).for_each(|x| {
             floor_map_line.push(line[x])
         });
@@ -92,7 +99,7 @@ fn main() {
     let cone = light_engine.spawn_light(Light::default_cone());
     let mut flashlight_on = true;
 
-    let floor_map = load_map("assets/maps/map0.tmx");
+    let floor_map= load_map("assets/maps/map0.tmx");
 
     camera.zoom = 3.5;
 
@@ -101,31 +108,16 @@ fn main() {
         let screen_size = Vector2::new(rl.get_screen_width() as f32, rl.get_screen_height() as f32);
 
         player.handle_movement(&rl);
+        camera.handle_player_controls(&mut rl);
 
+        camera.offset = -player.pos + screen_size / 2.0 / camera.zoom;
+        
         if rl.is_key_pressed(KeyboardKey::KEY_F) {
             flashlight_on = !flashlight_on;
         }
 
-        if rl.is_key_pressed(KeyboardKey::KEY_F1) {
-            debug_info.drawing = !debug_info.drawing;
-        }
-
-        camera.zoom *= 1.0 + rl.get_mouse_wheel_move() / 40.0;
-
-        if rl.is_key_down(KeyboardKey::KEY_MINUS) {
-            camera.zoom /= 1.04;
-        }
-        if rl.is_key_down(KeyboardKey::KEY_EQUAL) {
-            camera.zoom *= 1.04;
-        }
-        if rl.is_key_pressed(KeyboardKey::KEY_BACKSPACE) {
-            camera.zoom = 1.0;
-        }
-
-        camera.offset = -player.pos + screen_size / 2.0 / camera.zoom;
-
-        day_cycle.update(&mut rl);
-        debug_info.clear();
+        day_cycle.update(&mut rl, &mut light_engine);
+        debug_info.update(&mut rl);
         debug_info.add(format!("FPS: {}", rl.get_fps()));
         debug_info.add(format!("Frame time: {}", rl.get_frame_time()));
         debug_info.add(day_cycle.get_debug_info());
@@ -152,10 +144,6 @@ fn main() {
             },
         );
 
-        light_engine.update_light(
-            day_cycle.ambient_light_handle(),
-            day_cycle.get_ambient_light(),
-        );
         renderer.update_target(&mut rl, &thread, screen_size);
 
         /* ----- Draw ----- */
@@ -165,6 +153,7 @@ fn main() {
         // Drawing world
         renderer.draw_world(&mut d, &thread, &player, &camera, &floor_map);
 
+        // Drawing UI
         debug_info.draw(&mut d);
     }
 }

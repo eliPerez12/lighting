@@ -15,11 +15,15 @@ impl DayCycle {
             ambient_light_handle: light_engine.spawn_light(Light::default_ambient()),
         }
     }
-    pub fn update(&mut self, rl: &mut RaylibHandle) {
+    pub fn update(&mut self, rl: &mut RaylibHandle, light_engine: &mut LightEngine) {
         self.time += rl.get_frame_time();
         if self.time > Self::FULL_CYCLE_LENGTH {
             self.time -= Self::FULL_CYCLE_LENGTH;
-        }
+        };
+        light_engine.update_light(
+            self.ambient_light_handle(),
+            self.get_ambient_light(),
+        );
     }
     pub fn ambient_light_handle(&self) -> &LightHandle {
         &self.ambient_light_handle
@@ -72,9 +76,11 @@ impl DayCycle {
     }
 }
 
+// Adding additional methods to raylib camera2d 
 pub trait ImprovedCamera {
     fn to_screen(&self, world_pos: Vector2) -> Vector2;
     fn to_world(&self, screen_pos: Vector2) -> Vector2;
+    fn handle_player_controls(&mut self, rl: &mut RaylibHandle);
 }
 
 impl ImprovedCamera for Camera2D {
@@ -83,5 +89,18 @@ impl ImprovedCamera for Camera2D {
     }
     fn to_world(&self, screen_pos: Vector2) -> Vector2 {
         (screen_pos / self.zoom) - self.offset
+    }
+    fn handle_player_controls(&mut self, rl: &mut RaylibHandle) {
+        self.zoom *= 1.0 + rl.get_mouse_wheel_move() / 40.0;
+
+        if rl.is_key_down(KeyboardKey::KEY_MINUS) {
+            self.zoom /= 1.04;
+        }
+        if rl.is_key_down(KeyboardKey::KEY_EQUAL) {
+            self.zoom *= 1.04;
+        }
+        if rl.is_key_pressed(KeyboardKey::KEY_BACKSPACE) {
+            self.zoom = 1.0;
+        }
     }
 }

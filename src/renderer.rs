@@ -3,7 +3,7 @@ use raylib::prelude::*;
 
 pub struct Renderer {
     target: RenderTexture2D,
-    background_textures: Vec<Texture2D>,
+    background_tile_sheet: Texture2D,
     pub shader: Shader,
 }
 
@@ -22,12 +22,9 @@ impl Renderer {
                     rl.get_screen_height() as u32,
                 )
                 .unwrap(),
-            background_textures: (0..=6)
-                .map(|i| {
-                    rl.load_texture(thread, &format!("assets/background/background_{}.png", i))
-                        .unwrap()
-                })
-                .collect(),
+            background_tile_sheet: 
+                rl.load_texture(thread, "assets/background/background_tile_sheet.png")
+                    .unwrap()
         }
     }
 
@@ -50,24 +47,27 @@ impl Renderer {
         thread: &RaylibThread,
         player: &Player,
         camera: &Camera2D,
-        floor_map: &Vec<Vec<i32>>,
+        floor_map: &Vec<Vec<i64>>,
     ) {
         let mut tg = d.begin_texture_mode(thread, &mut self.target);
         tg.clear_background(Color::BLACK);
 
-        // Drawing world
+        // Drawing background tile
         (0..floor_map.len()).for_each(|y| {
             (0..floor_map[y].len()).for_each(|x| {
-                let texture = &self.background_textures[floor_map[y][x] as usize];
+                let texture = &self.background_tile_sheet;
                 let render_size = 32.0;
+                let tile = floor_map[y][x];
+                let tile_x = tile % 30;
+                let tile_y = tile / 20;
                 tg.draw_texture_pro(
                     texture,
-                    Rectangle::new(0.0, 0.0, texture.width as f32, texture.height as f32),
+                    Rectangle::new(tile_x as f32 * 32.0,tile_y as f32 * 32.0, 32.0, 32.0),
                     Rectangle::new(
                         (x as f32 * render_size + camera.offset.x) * camera.zoom,
                         (y as f32 * render_size + camera.offset.y) * camera.zoom,
-                        render_size * camera.zoom,
-                        render_size * camera.zoom,
+                        render_size * camera.zoom + 0.01 * 32.0,
+                        render_size * camera.zoom + 0.01 * 32.0,
                     ),
                     Vector2::zero(),
                     0.0,
@@ -87,8 +87,8 @@ impl Renderer {
             player.get_animation_frame(),
             Rectangle::new(0.0, 0.0, 26.0, 42.0),
             Rectangle::new(
-                player_screen_pos.x, // - Player::RENDER_SIZE.x / 2.0,
-                player_screen_pos.y, // - Player::RENDER_SIZE.y / 2.0,
+                player_screen_pos.x,
+                player_screen_pos.y,
                 Player::RENDER_SIZE.x * camera.zoom,
                 Player::RENDER_SIZE.y * camera.zoom,
             ),

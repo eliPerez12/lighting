@@ -6,7 +6,25 @@
     "activeFile": "",
     "expandedProjectPaths": [
     ],
+    "file.lastUsedOpenFilter": "All Files (*)",
     "fileStates": {
+        "background/background_tile_sheet.tsx": {
+            "dynamicWrapping": true,
+            "scaleInDock": 1
+        },
+        "maps/map0.tmx": {
+            "scale": 0.8134374999999999,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 478.8321167883212,
+                "y": 319.01651940069155
+            }
+        },
+        "tiled/background_tile_sheet.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        }
     },
     "last.imagePath": "C:/Users/Eli/Desktop/Projects/lighting/assets/background",
     "map.lastUsedFormat": "tmx",
@@ -14,6 +32,8 @@
     ],
     "project": "map0.tiled-project",
     "recentFiles": [
+        "tiled/background_tile_sheet.tsx",
+        "maps/map0.tmx"
     ],
     "tileset.lastUsedFormat": "tsx"
 }
