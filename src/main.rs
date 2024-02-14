@@ -11,14 +11,14 @@ mod world;
 
 struct DebugInfo {
     info: Vec<String>,
-    drawing: bool,
+    debug: bool,
 }
 
 impl DebugInfo {
     fn update(&mut self, rl: &mut RaylibHandle) {
         self.info = vec![];
         if rl.is_key_pressed(KeyboardKey::KEY_F1) {
-            self.drawing = !self.drawing;
+            self.debug = !self.debug;
         }
         self.info.push("(F1 to diable debug info)".to_string());
     }
@@ -26,7 +26,7 @@ impl DebugInfo {
         self.info.push(info)
     }
     fn draw(&self, d: &mut RaylibDrawHandle) {
-        if self.drawing {
+        if self.debug {
             let font_size = 40;
             for (i, info) in self.info.iter().enumerate() {
                 d.draw_text(
@@ -41,7 +41,7 @@ impl DebugInfo {
     }
 }
 
-fn load_map(path: &str) -> (Vec<Vec<i64>>, Vec<Vec<i64>>) {
+fn load_map(path: &str) -> (Vec<Vec<u32>>, Vec<Vec<u32>>) {
     use std::io::BufRead;
 
     let mut floor_map = vec![];
@@ -62,14 +62,14 @@ fn load_map(path: &str) -> (Vec<Vec<i64>>, Vec<Vec<i64>>) {
             .split(',')
             .filter(|s| s != &"")
             .map(|s| {
-                if let Ok(tile) = s.parse::<i64>() {
+                if let Ok(tile) = s.parse::<u32>() {
                     tile
                 } else {
                     dbg!(s, y, buffer);
                     panic!("Unable to parse map");
                 }
             })
-            .collect::<Vec<i64>>();
+            .collect::<Vec<u32>>();
         (0..30).for_each(|x| floor_map_line.push(line[x]));
         floor_map.push(floor_map_line);
     }
@@ -85,14 +85,18 @@ fn load_map(path: &str) -> (Vec<Vec<i64>>, Vec<Vec<i64>>) {
             .split(',')
             .filter(|s| s != &"")
             .map(|s| {
-                if let Ok(tile) = s.parse::<i64>() {
+                if let Ok(tile) = s.parse::<u32>() {
+                    if tile != 0 {
+                        let rot_bitmap = tile & 0xF0000000;
+                        dbg!(rot_bitmap);
+                    }
                     tile
                 } else {
                     dbg!(s, y, buffer);
                     panic!("Unable to parse map");
                 }
             })
-            .collect::<Vec<i64>>();
+            .collect::<Vec<u32>>();
         (0..30).for_each(|x| wall_map_line.push(line[x]));
         wall_map.push(wall_map_line);
     }
@@ -114,9 +118,9 @@ fn main() {
     let mut player = Player::new(&mut rl, &thread);
     let mut debug_info = DebugInfo {
         info: vec![],
-        drawing: true,
+        debug: true,
     };
-    player.pos += Vector2::new(500.0, 500.0);
+    player.pos += Vector2::new(100.0, 100.0);
 
     let cone = light_engine.spawn_light(Light::default_cone());
     let mut flashlight_on = true;
@@ -173,7 +177,7 @@ fn main() {
         light_engine.update_shader_values(&mut renderer.shader, &camera, screen_size);
 
         // Drawing world
-        renderer.draw_world(&mut d, &thread, &player, &camera, &floor_map, &wall_map);
+        renderer.draw_world(&mut d, &thread, &player, &camera, &floor_map, &wall_map, &debug_info);
 
         // Drawing UI
         debug_info.draw(&mut d);

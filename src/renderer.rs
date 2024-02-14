@@ -1,4 +1,4 @@
-use crate::{player::*, ImprovedCamera};
+use crate::{player::*, DebugInfo, ImprovedCamera};
 use raylib::prelude::*;
 
 pub struct Renderer {
@@ -51,8 +51,9 @@ impl Renderer {
         thread: &RaylibThread,
         player: &Player,
         camera: &Camera2D,
-        floor_map: &Vec<Vec<i64>>,
-        wall_map: &Vec<Vec<i64>>,
+        floor_map: &Vec<Vec<u32>>,
+        wall_map: &Vec<Vec<u32>>,
+        debug_info: &DebugInfo,
     ) {
         let mut tg = d.begin_texture_mode(thread, &mut self.target);
         tg.clear_background(Color::BLACK);
@@ -66,7 +67,7 @@ impl Renderer {
                 if tile == 0 {
                     continue;
                 }
-                let texture_width = self.floor_tile_sheet.width() as i64 / render_size as i64;
+                let texture_width = self.floor_tile_sheet.width() as u32 / render_size as u32;
                 let tile_x = (tile - 1) % texture_width;
                 let tile_y = (tile - 1) / texture_width;
                 tg.draw_texture_pro(
@@ -93,24 +94,46 @@ impl Renderer {
                 if tile == 0 {
                     continue;
                 }
-                let texture_width = self.wall_tile_sheet.width() as i64 / render_size as i64;
-                let tile_x = (tile - 65) % texture_width;
-                let tile_y = (tile - 65) / texture_width;
+
+                let texture_width = self.wall_tile_sheet.width() as u32 / render_size as u32;
+                let tile_x = ((tile & 0x0FFFFFFF) - 65) % texture_width;
+                let tile_y = ((tile & 0x0FFFFFFF) - 65) / texture_width;
+                //dbg!(tile & 0x0FFFFFFF);
                 tg.draw_texture_pro(
                     texture,
                     Rectangle::new(tile_x as f32 * 32.0, tile_y as f32 * 32.0, 32.0, 32.0),
                     Rectangle::new(
                         (x as f32 * render_size + camera.offset.x) * camera.zoom,
                         (y as f32 * render_size + camera.offset.y) * camera.zoom,
-                        render_size * camera.zoom + 0.01 * 32.0,
-                        render_size * camera.zoom + 0.01 * 32.0,
+                        render_size * camera.zoom + 0.001 * 32.0,
+                        render_size * camera.zoom + 0.001 * 32.0,
                     ),
-                    Vector2::zero(),
-                    0.0,
+                    Vector2::new(0.0, 0.0),
+                    get_rot(tile),
                     Color::WHITE,
-                )
+                );
             }
         });
+
+        if debug_info.debug {
+            // Drawing debug tile grid
+            (0..floor_map.len()).for_each(|y| {
+                for x in 0..floor_map[y].len() {
+                    tg.draw_rectangle_lines_ex(
+                        Rectangle::new(
+                            (x as f32 * 32.0 + camera.offset.x) * camera.zoom,
+                            (y as f32 * 32.0 + camera.offset.y) * camera.zoom,
+                            32.0 * camera.zoom, 
+                            32.0 * camera.zoom
+                        ),
+                        1.0 * camera.zoom,
+                        Color::WHITE
+                    )
+                }
+            });
+        }
+        
+
         let player_screen_pos = camera.to_screen(player.pos);
         let mouse_pos = tg.get_mouse_position();
         let angle_to_mouse = (mouse_pos.y - player_screen_pos.y)
@@ -136,5 +159,20 @@ impl Renderer {
         // Render target with shader
         let mut sh = d.begin_shader_mode(&self.shader);
         sh.draw_texture(&self.target, 0, 0, Color::WHITE);
+    }
+}
+
+
+fn get_rot(tile: u32) -> f32 {
+    match (
+        (tile & 0x20000000) != 0, // Flip diagonaly
+        (tile & 0x80000000) != 0, // Flip x
+        (tile & 0x40000000) != 0, // Flip y
+    ) {
+        (false, true, true) => 0.0,
+        (true, true, false) => 90.0,
+        (true, false, true) => 270.0,
+        _ => 0.0,
+
     }
 }
