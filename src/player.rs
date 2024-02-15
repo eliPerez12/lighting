@@ -1,15 +1,77 @@
 use raylib::prelude::*;
+use crate::{ImprovedCamera, Light, LightEngine, LightHandle};
 
 pub struct Player {
     pub pos: Vector2,
     animation: PlayerAnimation,
+    flashlight: (LightHandle, bool),
 }
+
+impl Player {
+    pub const RENDER_SIZE: Vector2 = Vector2::new(26.0, 42.0);
+    pub fn new(rl: &mut RaylibHandle, thread: &RaylibThread, light_engine: &mut LightEngine) -> Player {
+        Player {
+            pos: Vector2::zero(),
+            animation: PlayerAnimation::new(rl, thread),
+            flashlight: (light_engine.spawn_light(Light::default_cone()), true),
+        }
+    }
+
+    pub fn get_animation_frame(&self) -> &Texture2D {
+        &self.animation.frames[self.animation.current_frame]
+    }
+
+    pub fn handle_movement(&mut self, rl: &RaylibHandle) {
+        let player_speed = 40.0 * rl.get_frame_time();
+        if rl.is_key_down(KeyboardKey::KEY_W) {
+            self.pos.y -= player_speed;
+        }
+        if rl.is_key_down(KeyboardKey::KEY_S) {
+            self.pos.y += player_speed;
+        }
+        if rl.is_key_down(KeyboardKey::KEY_A) {
+            self.pos.x -= player_speed;
+        }
+        if rl.is_key_down(KeyboardKey::KEY_D) {
+            self.pos.x += player_speed;
+        }
+        if rl.is_key_pressed(KeyboardKey::KEY_F) {
+            self.flashlight.1 = !self.flashlight.1;
+        }
+        self.animation.handle_animation(rl);
+    }
+
+    pub fn handle_flashlight(&mut self, rl: &mut RaylibHandle, camera: &Camera2D, light_engine: &mut LightEngine) {
+        let player_screen_pos = camera.to_screen(self.pos);
+        let mouse_pos = rl.get_mouse_position();
+        let dx = mouse_pos.x - player_screen_pos.x;
+        let dy = -(mouse_pos.y - player_screen_pos.y);
+        let rotation = dy.atan2(dx) + PI as f32;
+
+        light_engine.update_light(
+            &self.flashlight.0,
+            Light::Cone {
+                pos: self.pos + Vector2::new(dx, -dy).normalized() * 5.0,
+                color: if self.flashlight.1 {
+                    Color::WHEAT.into()
+                } else {
+                    Color::BLACK.into()
+                },
+                radius: 550.0,
+                angle: PI as f32 / 2.0,
+                rotation,
+            },
+        );
+    }
+}
+
 
 struct PlayerAnimation {
     current_frame: usize,
     elapsed_time: f32,
     frames: Vec<Texture2D>,
 }
+
 
 impl PlayerAnimation {
     const FRAME_AMOUNT: usize = 4;
@@ -47,36 +109,5 @@ impl PlayerAnimation {
             }
             self.elapsed_time -= rl.get_frame_time();
         }
-    }
-}
-
-impl Player {
-    pub const RENDER_SIZE: Vector2 = Vector2::new(26.0, 42.0);
-    pub fn new(rl: &mut RaylibHandle, thread: &RaylibThread) -> Player {
-        Player {
-            pos: Vector2::zero(),
-            animation: PlayerAnimation::new(rl, thread),
-        }
-    }
-
-    pub fn get_animation_frame(&self) -> &Texture2D {
-        &self.animation.frames[self.animation.current_frame]
-    }
-
-    pub fn handle_movement(&mut self, rl: &RaylibHandle) {
-        let player_speed = 40.0 * rl.get_frame_time();
-        if rl.is_key_down(KeyboardKey::KEY_W) {
-            self.pos.y -= player_speed;
-        }
-        if rl.is_key_down(KeyboardKey::KEY_S) {
-            self.pos.y += player_speed;
-        }
-        if rl.is_key_down(KeyboardKey::KEY_A) {
-            self.pos.x -= player_speed;
-        }
-        if rl.is_key_down(KeyboardKey::KEY_D) {
-            self.pos.x += player_speed;
-        }
-        self.animation.handle_animation(rl);
     }
 }

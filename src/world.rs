@@ -1,6 +1,77 @@
 use raylib::prelude::*;
-
 use crate::{Light, LightEngine, LightHandle};
+
+pub struct WorldMap {
+    pub ground: Vec<Vec<u32>>,
+    pub walls: Vec<Vec<u32>>,
+}
+
+impl WorldMap {
+    
+    pub fn load_from_file(path: &str) -> WorldMap {
+        use std::io::BufRead;
+
+        let mut ground = vec![];
+        let mut walls = vec![];
+        let map = std::fs::File::open(path).unwrap();
+        let mut reader = std::io::BufReader::new(map);
+        // Skip first 6 lines of map data
+        for _ in 0..6 {
+            reader.read_line(&mut String::new()).unwrap();
+        }
+        // Parsing background layer
+        for y in 0..20 {
+            let mut floor_map_line = vec![];
+            let mut buffer = String::new();
+            reader.read_line(&mut buffer).unwrap();
+            let buffer = &buffer.replace("\r\n", "");
+            let line = buffer
+                .split(',')
+                .filter(|s| s != &"")
+                .map(|s| {
+                    if let Ok(tile) = s.parse::<u32>() {
+                        tile
+                    } else {
+                        dbg!(s, y, buffer);
+                        panic!("Unable to parse map");
+                    }
+                })
+                .collect::<Vec<u32>>();
+            (0..30).for_each(|x| floor_map_line.push(line[x]));
+            ground.push(floor_map_line);
+        }
+        // Skipping another 4 lines
+        for _ in 0..4 {
+            reader.read_line(&mut String::new()).unwrap();
+        }
+        // Parsing wall layer
+        for y in 0..20 {
+            let mut wall_map_line = vec![];
+            let mut buffer = String::new();
+            reader.read_line(&mut buffer).unwrap();
+            let buffer = &buffer.replace("\r\n", "");
+            let line = buffer
+                .split(',')
+                .filter(|s| s != &"")
+                .map(|s| {
+                    if let Ok(tile) = s.parse::<u32>() {
+                        if tile != 0 {
+                            let rot_bitmap = tile & 0xF0000000;
+                            dbg!(rot_bitmap);
+                        }
+                        tile
+                    } else {
+                        dbg!(s, y, buffer);
+                        panic!("Unable to parse map");
+                    }
+                })
+                .collect::<Vec<u32>>();
+            (0..30).for_each(|x| wall_map_line.push(line[x]));
+            walls.push(wall_map_line);
+        }
+    WorldMap {ground, walls}
+    }
+}
 
 pub struct DayCycle {
     time: f32,

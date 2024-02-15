@@ -1,4 +1,4 @@
-use crate::{player::*, DebugInfo, ImprovedCamera};
+use crate::{player::*, DebugInfo, ImprovedCamera, WorldMap};
 use raylib::prelude::*;
 
 pub struct Renderer {
@@ -51,19 +51,18 @@ impl Renderer {
         thread: &RaylibThread,
         player: &Player,
         camera: &Camera2D,
-        floor_map: &Vec<Vec<u32>>,
-        wall_map: &Vec<Vec<u32>>,
+        map: &WorldMap,
         debug_info: &DebugInfo,
     ) {
         let mut tg = d.begin_texture_mode(thread, &mut self.target);
         tg.clear_background(Color::BLACK);
 
         // Drawing background tiles
-        (0..floor_map.len()).for_each(|y| {
-            for x in 0..floor_map[y].len() {
+        (0..map.ground.len()).for_each(|y| {
+            for x in 0..map.ground[y].len() {
                 let texture = &self.floor_tile_sheet;
                 let render_size = 32.0;
-                let tile = floor_map[y][x];
+                let tile = map.ground[y][x];
                 if tile == 0 {
                     continue;
                 }
@@ -86,11 +85,11 @@ impl Renderer {
             }
         });
         // Drawing wall tile
-        (0..wall_map.len()).for_each(|y| {
-            for x in 0..wall_map[y].len() {
+        (0..map.walls.len()).for_each(|y| {
+            for x in 0..map.walls[y].len() {
                 let texture = &self.wall_tile_sheet;
                 let render_size = 32.0;
-                let tile = wall_map[y][x];
+                let tile = map.walls[y][x];
                 if tile == 0 {
                     continue;
                 }
@@ -117,8 +116,8 @@ impl Renderer {
 
         if debug_info.debug {
             // Drawing debug tile grid
-            (0..floor_map.len()).for_each(|y| {
-                for x in 0..floor_map[y].len() {
+            (0..map.ground.len()).for_each(|y| {
+                for x in 0..map.ground[y].len() {
                     tg.draw_rectangle_lines_ex(
                         Rectangle::new(
                             (x as f32 * 32.0 + camera.offset.x) * camera.zoom,
@@ -126,13 +125,12 @@ impl Renderer {
                             32.0 * camera.zoom, 
                             32.0 * camera.zoom
                         ),
-                        1.0 * camera.zoom,
-                        Color::WHITE
+                        0.5 * camera.zoom,
+                        Color::LIGHTGRAY,
                     )
                 }
             });
         }
-        
 
         let player_screen_pos = camera.to_screen(player.pos);
         let mouse_pos = tg.get_mouse_position();
