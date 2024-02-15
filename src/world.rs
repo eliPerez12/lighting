@@ -4,11 +4,12 @@ use crate::{Light, LightEngine, LightHandle};
 pub struct WorldMap {
     pub ground: Vec<Vec<u32>>,
     pub walls: Vec<Vec<u32>>,
+    pub width: u32,
+    pub height: u32,
 }
 
 impl WorldMap {
-    
-    pub fn load_from_file(path: &str) -> WorldMap {
+    pub fn load_from_file(path: &str, map_width: u32, map_height: u32) -> WorldMap {
         use std::io::BufRead;
 
         let mut ground = vec![];
@@ -20,7 +21,7 @@ impl WorldMap {
             reader.read_line(&mut String::new()).unwrap();
         }
         // Parsing background layer
-        for y in 0..20 {
+        for y in 0..map_height {
             let mut floor_map_line = vec![];
             let mut buffer = String::new();
             reader.read_line(&mut buffer).unwrap();
@@ -45,7 +46,7 @@ impl WorldMap {
             reader.read_line(&mut String::new()).unwrap();
         }
         // Parsing wall layer
-        for y in 0..20 {
+        for y in 0..map_height {
             let mut wall_map_line = vec![];
             let mut buffer = String::new();
             reader.read_line(&mut buffer).unwrap();
@@ -69,7 +70,14 @@ impl WorldMap {
             (0..30).for_each(|x| wall_map_line.push(line[x]));
             walls.push(wall_map_line);
         }
-    WorldMap {ground, walls}
+        assert!(ground.len() == map_height as usize);
+        assert!(walls.len() == map_height as usize);
+        WorldMap {
+            ground,
+            walls,
+            width: map_width,
+            height: map_height,
+        }
     }
 }
 
@@ -149,6 +157,7 @@ pub trait ImprovedCamera {
     fn to_screen(&self, world_pos: Vector2) -> Vector2;
     fn to_world(&self, screen_pos: Vector2) -> Vector2;
     fn handle_player_controls(&mut self, rl: &mut RaylibHandle);
+    fn track(&mut self, pos: Vector2, screen_size: Vector2);
 }
 
 impl ImprovedCamera for Camera2D {
@@ -170,5 +179,8 @@ impl ImprovedCamera for Camera2D {
         if rl.is_key_pressed(KeyboardKey::KEY_BACKSPACE) {
             self.zoom = 1.0;
         }
+    }
+    fn track(&mut self, pos: Vector2, screen_size: Vector2) {
+        self.offset = -pos + screen_size/2.0 / self.zoom;
     }
 }

@@ -53,16 +53,17 @@ impl Renderer {
         camera: &Camera2D,
         map: &WorldMap,
         debug_info: &DebugInfo,
+        rot: f32,
     ) {
         let mut tg = d.begin_texture_mode(thread, &mut self.target);
         tg.clear_background(Color::BLACK);
 
         // Drawing background tiles
-        (0..map.ground.len()).for_each(|y| {
-            for x in 0..map.ground[y].len() {
+        for y in 0..map.height {
+            for x in 0..map.width {
                 let texture = &self.floor_tile_sheet;
                 let render_size = 32.0;
-                let tile = map.ground[y][x];
+                let tile = map.ground[y as usize][x as usize];
                 if tile == 0 {
                     continue;
                 }
@@ -83,13 +84,13 @@ impl Renderer {
                     Color::WHITE,
                 )
             }
-        });
+        };
         // Drawing wall tile
-        (0..map.walls.len()).for_each(|y| {
-            for x in 0..map.walls[y].len() {
+        for y in 0..map.height {
+            for x in 0..map.height {
                 let texture = &self.wall_tile_sheet;
                 let render_size = 32.0;
-                let tile = map.walls[y][x];
+                let tile = map.walls[y as usize][x as usize];
                 if tile == 0 {
                     continue;
                 }
@@ -97,7 +98,9 @@ impl Renderer {
                 let texture_width = self.wall_tile_sheet.width() as u32 / render_size as u32;
                 let tile_x = ((tile & 0x0FFFFFFF) - 65) % texture_width;
                 let tile_y = ((tile & 0x0FFFFFFF) - 65) / texture_width;
-                //dbg!(tile & 0x0FFFFFFF);
+
+                let mut image = texture.load_image().unwrap();
+
                 tg.draw_texture_pro(
                     texture,
                     Rectangle::new(tile_x as f32 * 32.0, tile_y as f32 * 32.0, 32.0, 32.0),
@@ -107,17 +110,17 @@ impl Renderer {
                         render_size * camera.zoom + 0.001 * 32.0,
                         render_size * camera.zoom + 0.001 * 32.0,
                     ),
-                    Vector2::new(0.0, 0.0),
-                    get_rot(tile),
+                    Vector2::zero(),
+                    0.0,
                     Color::WHITE,
                 );
             }
-        });
+        };
 
         if debug_info.debug {
             // Drawing debug tile grid
-            (0..map.ground.len()).for_each(|y| {
-                for x in 0..map.ground[y].len() {
+            for y in 0..map.height {
+                for x in 0..map.height {
                     tg.draw_rectangle_lines_ex(
                         Rectangle::new(
                             (x as f32 * 32.0 + camera.offset.x) * camera.zoom,
@@ -129,7 +132,7 @@ impl Renderer {
                         Color::LIGHTGRAY,
                     )
                 }
-            });
+            };
         }
 
         let player_screen_pos = camera.to_screen(player.pos);
