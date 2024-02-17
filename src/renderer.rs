@@ -53,12 +53,11 @@ impl Renderer {
         camera: &Camera2D,
         map: &WorldMap,
         debug_info: &DebugInfo,
-        rot: f32,
     ) {
         let mut tg = d.begin_texture_mode(thread, &mut self.target);
         tg.clear_background(Color::BLACK);
 
-        // Drawing background tiles
+        // Drawing floor tiles
         for y in 0..map.height {
             for x in 0..map.width {
                 let texture = &self.floor_tile_sheet;
@@ -85,6 +84,7 @@ impl Renderer {
                 )
             }
         };
+        
         // Drawing wall tile
         for y in 0..map.height {
             for x in 0..map.height {
@@ -95,23 +95,35 @@ impl Renderer {
                     continue;
                 }
 
-                let texture_width = self.wall_tile_sheet.width() as u32 / render_size as u32;
-                let tile_x = ((tile & 0x0FFFFFFF) - 65) % texture_width;
-                let tile_y = ((tile & 0x0FFFFFFF) - 65) / texture_width;
+                let tile_x = ((tile as i32 & 0x0FFFFFFF) - 65) % (texture.width / render_size as i32);
+                let tile_y = ((tile as i32 & 0x0FFFFFFF) - 65) / (texture.width / render_size as i32);
 
-                let mut image = texture.load_image().unwrap();
-
+                let flags = tile >> 28; // Get first byte from tile 
+                let rot = match flags {
+                    0 => 0.0,
+                    6 => 270.0,
+                    10 => 90.0,
+                    12 => 180.0,
+                    _ => 0.0,
+                };
+                let rot_offset = match flags {
+                    0 => Vector2::zero(),
+                    6 => Vector2::new(0.0, render_size),
+                    12 => Vector2::new(render_size, render_size),
+                    10 => Vector2::new(render_size, 0.0),
+                    _ => Vector2::zero()
+                };
                 tg.draw_texture_pro(
                     texture,
                     Rectangle::new(tile_x as f32 * 32.0, tile_y as f32 * 32.0, 32.0, 32.0),
                     Rectangle::new(
-                        (x as f32 * render_size + camera.offset.x) * camera.zoom,
-                        (y as f32 * render_size + camera.offset.y) * camera.zoom,
+                        (x as f32 * render_size + camera.offset.x + rot_offset.x) * camera.zoom,
+                        (y as f32 * render_size + camera.offset.y + rot_offset.y) * camera.zoom,
                         render_size * camera.zoom + 0.001 * 32.0,
                         render_size * camera.zoom + 0.001 * 32.0,
                     ),
                     Vector2::zero(),
-                    0.0,
+                    rot,
                     Color::WHITE,
                 );
             }
@@ -134,7 +146,6 @@ impl Renderer {
                 }
             };
         }
-
         let player_screen_pos = camera.to_screen(player.pos);
         let mouse_pos = tg.get_mouse_position();
         let angle_to_mouse = (mouse_pos.y - player_screen_pos.y)
@@ -160,20 +171,5 @@ impl Renderer {
         // Render target with shader
         let mut sh = d.begin_shader_mode(&self.shader);
         sh.draw_texture(&self.target, 0, 0, Color::WHITE);
-    }
-}
-
-
-fn get_rot(tile: u32) -> f32 {
-    match (
-        (tile & 0x20000000) != 0, // Flip diagonaly
-        (tile & 0x80000000) != 0, // Flip x
-        (tile & 0x40000000) != 0, // Flip y
-    ) {
-        (false, true, true) => 0.0,
-        (true, true, false) => 90.0,
-        (true, false, true) => 270.0,
-        _ => 0.0,
-
     }
 }

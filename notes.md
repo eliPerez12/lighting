@@ -6,6 +6,7 @@ Work on the daylight system anymore.
 
 # SHORT TERM
 Add an actual map
+Clean up the renderer
 
 # LONG TERM
 Add multiplayer

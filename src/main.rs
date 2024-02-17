@@ -11,7 +11,6 @@ mod renderer;
 mod world;
 mod debug;
 
-
 fn main() {
     let (mut rl, thread) = raylib::init()
         .vsync()
@@ -28,8 +27,8 @@ fn main() {
     let mut debug_info = DebugInfo::new();
     let map = WorldMap::load_from_file("assets/maps/map0.tmx", 30, 20);
 
+
     camera.zoom = 3.5;
-    let mut rot = 0.0;
 
     while !rl.window_should_close() {
         /* ---- Update ---- */
@@ -50,14 +49,12 @@ fn main() {
 
         renderer.update_target(&mut rl, &thread, screen_size);
 
-        rot += 30.0 * rl.get_frame_time();
-
         /* ----- Draw ----- */
         let mut d = rl.begin_drawing(&thread);
         light_engine.update_shader_values(&mut renderer.shader, &camera, screen_size);
 
         // Drawing world
-        renderer.draw_world(&mut d, &thread, &player, &camera, &map, &debug_info, rot);
+        renderer.draw_world(&mut d, &thread, &player, &camera, &map, &debug_info);
 
         // Drawing UI
         debug_info.draw(&mut d);
