@@ -5,11 +5,11 @@ use raylib::prelude::*;
 use renderer::*;
 use world::*;
 
+mod debug;
 mod lighting;
 mod player;
 mod renderer;
 mod world;
-mod debug;
 
 fn main() {
     let (mut rl, thread) = raylib::init()
@@ -27,8 +27,8 @@ fn main() {
     let mut debug_info = DebugInfo::new();
     let map = WorldMap::load_from_file("assets/maps/map0.tmx", 30, 20);
 
-
     camera.zoom = 3.5;
+    player.pos = Vector2::new(64.0, 64.0);
 
     while !rl.window_should_close() {
         /* ---- Update ---- */

@@ -1,5 +1,5 @@
-use raylib::prelude::*;
 use crate::{ImprovedCamera, Light, LightEngine, LightHandle};
+use raylib::prelude::*;
 
 pub struct Player {
     pub pos: Vector2,
@@ -9,7 +9,11 @@ pub struct Player {
 
 impl Player {
     pub const RENDER_SIZE: Vector2 = Vector2::new(26.0, 42.0);
-    pub fn new(rl: &mut RaylibHandle, thread: &RaylibThread, light_engine: &mut LightEngine) -> Player {
+    pub fn new(
+        rl: &mut RaylibHandle,
+        thread: &RaylibThread,
+        light_engine: &mut LightEngine,
+    ) -> Player {
         Player {
             pos: Vector2::zero(),
             animation: PlayerAnimation::new(rl, thread),
@@ -41,7 +45,12 @@ impl Player {
         self.animation.handle_animation(rl);
     }
 
-    pub fn handle_flashlight(&mut self, rl: &mut RaylibHandle, camera: &Camera2D, light_engine: &mut LightEngine) {
+    pub fn handle_flashlight(
+        &mut self,
+        rl: &mut RaylibHandle,
+        camera: &Camera2D,
+        light_engine: &mut LightEngine,
+    ) {
         let player_screen_pos = camera.to_screen(self.pos);
         let mouse_pos = rl.get_mouse_position();
         let dx = mouse_pos.x - player_screen_pos.x;
@@ -65,13 +74,11 @@ impl Player {
     }
 }
 
-
 struct PlayerAnimation {
     current_frame: usize,
     elapsed_time: f32,
     frames: Vec<Texture2D>,
 }
-
 
 impl PlayerAnimation {
     const FRAME_AMOUNT: usize = 4;

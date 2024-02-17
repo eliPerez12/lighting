@@ -1,5 +1,5 @@
-use raylib::prelude::*;
 use crate::{Light, LightEngine, LightHandle};
+use raylib::prelude::*;
 
 pub struct WorldMap {
     pub ground: Vec<Vec<u32>>,
@@ -181,6 +181,6 @@ impl ImprovedCamera for Camera2D {
         }
     }
     fn track(&mut self, pos: Vector2, screen_size: Vector2) {
-        self.offset = -pos + screen_size/2.0 / self.zoom;
+        self.offset = -pos + screen_size / 2.0 / self.zoom;
     }
 }
