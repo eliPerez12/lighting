@@ -32,6 +32,7 @@ impl Renderer {
         }
     }
 
+    // Draws the world to the screen
     pub fn draw_world(
         &mut self,
         d: &mut RaylibDrawHandle,
@@ -55,6 +56,13 @@ impl Renderer {
         sh.draw_texture(&self.target, 0, 0, Color::WHITE);
     }
 
+    // Clears the internal target with black background
+    fn clear_target(&mut self, d: &mut RaylibDrawHandle, thread: &RaylibThread) {
+        d.begin_texture_mode(thread, &mut self.target)
+            .clear_background(Color::BLACK);
+    }
+
+    // Updates internal renderer target to resize with the window
     pub fn update_target(
         &mut self,
         rl: &mut RaylibHandle,
@@ -68,6 +76,7 @@ impl Renderer {
         }
     }
 
+    // Draws all the floors in the world
     fn draw_floor(
         &mut self,
         d: &mut RaylibDrawHandle,
@@ -76,7 +85,6 @@ impl Renderer {
         camera: &Camera2D,
     ) {
         let mut tg = d.begin_texture_mode(thread, &mut self.target);
-        // Drawing floor tiles
         for y in 0..map.height {
             for x in 0..map.width {
                 let texture = &self.floor_tile_sheet;
@@ -90,7 +98,12 @@ impl Renderer {
                 let tile_y = (tile - 1) / texture_width;
                 tg.draw_texture_pro(
                     texture,
-                    Rectangle::new(tile_x as f32 * 32.0, tile_y as f32 * 32.0, 32.0, 32.0),
+                    Rectangle::new(
+                        tile_x as f32 * 32.0,
+                        tile_y as f32 * 32.0,
+                        32.0,
+                        32.0
+                    ),
                     Rectangle::new(
                         (x as f32 * render_size + camera.offset.x) * camera.zoom,
                         (y as f32 * render_size + camera.offset.y) * camera.zoom,
@@ -105,6 +118,8 @@ impl Renderer {
         }
     }
 
+
+    // Draws the walls 
     fn draw_walls(
         &mut self,
         d: &mut RaylibDrawHandle,
@@ -113,7 +128,6 @@ impl Renderer {
         camera: &Camera2D,
     ) {
         let mut tg = d.begin_texture_mode(thread, &mut self.target);
-        // Drawing walls
         for y in 0..map.height {
             for x in 0..map.height {
                 let texture = &self.wall_tile_sheet;
@@ -160,6 +174,7 @@ impl Renderer {
         }
     }
 
+    // Draws debug information about tiles
     fn draw_debug_grid(
         &mut self,
         thread: &RaylibThread,
@@ -185,6 +200,7 @@ impl Renderer {
         }
     }
 
+    // Draws the player
     fn draw_player(
         &mut self,
         d: &mut RaylibDrawHandle,
@@ -200,7 +216,7 @@ impl Renderer {
             .to_degrees()
             + 90.0;
 
-        // Drawing player
+        
         tg.draw_texture_pro(
             player.get_animation_frame(),
             Rectangle::new(0.0, 0.0, 26.0, 42.0),
@@ -214,10 +230,5 @@ impl Renderer {
             angle_to_mouse,
             Color::WHITE,
         );
-    }
-
-    fn clear_target(&mut self, d: &mut RaylibDrawHandle, thread: &RaylibThread) {
-        d.begin_texture_mode(thread, &mut self.target)
-            .clear_background(Color::BLACK);
     }
 }
