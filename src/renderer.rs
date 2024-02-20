@@ -200,6 +200,10 @@ impl Renderer {
         }
     }
 
+    fn draw_debug_colliders() {
+        
+    }
+
     // Draws the player
     fn draw_player(
         &mut self,

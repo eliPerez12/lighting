@@ -52,7 +52,7 @@ impl Light {
         Light::Cone {
             pos: Vector2::new(0.0, 0.0),
             color: Color::WHEAT.into(),
-            radius: 300.0,
+            radius: 250.0,
             rotation: 0.0,
             angle: PI as f32 / 3.0,
         }
