@@ -9,6 +9,7 @@ pub struct Renderer {
 }
 
 impl Renderer {
+    const TILE_SIZE: f32 = 32.0;
     pub fn new(rl: &mut RaylibHandle, thread: &RaylibThread) -> Renderer {
         Renderer {
             shader: rl.load_shader_from_memory(
@@ -32,36 +33,6 @@ impl Renderer {
         }
     }
 
-    // Draws the world to the screen
-    pub fn draw_world(
-        &mut self,
-        d: &mut RaylibDrawHandle,
-        thread: &RaylibThread,
-        player: &Player,
-        camera: &Camera2D,
-        map: &WorldMap,
-        debug_info: &DebugInfo,
-    ) {
-        // Draw world onto the renderers target
-        self.clear_target(d, thread);
-        self.draw_floor(d, thread, map, camera);
-        self.draw_walls(d, thread, map, camera);
-        if debug_info.debug {
-            self.draw_debug_grid(thread, d, map, camera);
-        }
-        self.draw_player(d, thread, camera, player);
-
-        // Render target with shader
-        let mut sh = d.begin_shader_mode(&self.shader);
-        sh.draw_texture(&self.target, 0, 0, Color::WHITE);
-    }
-
-    // Clears the internal target with black background
-    fn clear_target(&mut self, d: &mut RaylibDrawHandle, thread: &RaylibThread) {
-        d.begin_texture_mode(thread, &mut self.target)
-            .clear_background(Color::BLACK);
-    }
-
     // Updates internal renderer target to resize with the window
     pub fn update_target(
         &mut self,
@@ -76,122 +47,21 @@ impl Renderer {
         }
     }
 
-    // Draws all the floors in the world
-    fn draw_floor(
-        &mut self,
-        d: &mut RaylibDrawHandle,
-        thread: &RaylibThread,
-        map: &WorldMap,
-        camera: &Camera2D,
-    ) {
-        let mut tg = d.begin_texture_mode(thread, &mut self.target);
-        for y in 0..map.height {
-            for x in 0..map.width {
-                let texture = &self.floor_tile_sheet;
-                let render_size = 32.0;
-                let tile = map.ground[y as usize][x as usize];
-                if tile == 0 {
-                    continue;
-                }
-                let texture_width = self.floor_tile_sheet.width() as u32 / render_size as u32;
-                let tile_x = (tile - 1) % texture_width;
-                let tile_y = (tile - 1) / texture_width;
-                tg.draw_texture_pro(
-                    texture,
-                    Rectangle::new(tile_x as f32 * 32.0, tile_y as f32 * 32.0, 32.0, 32.0),
-                    Rectangle::new(
-                        (x as f32 * render_size + camera.offset.x) * camera.zoom,
-                        (y as f32 * render_size + camera.offset.y) * camera.zoom,
-                        render_size * camera.zoom + 0.01 * 32.0,
-                        render_size * camera.zoom + 0.01 * 32.0,
-                    ),
-                    Vector2::zero(),
-                    0.0,
-                    Color::WHITE,
-                )
-            }
+    fn get_rot(tile: u32) -> i32 {
+        let flags = tile >> 28; // Get first byte from tile
+        match flags {
+            0 => 0,
+            6 => 1,
+            10 => 2,
+            12 => 3,
+            _ => panic!(),
         }
     }
 
-    // Draws the walls
-    fn draw_walls(
-        &mut self,
-        d: &mut RaylibDrawHandle,
-        thread: &RaylibThread,
-        map: &WorldMap,
-        camera: &Camera2D,
-    ) {
-        let mut tg = d.begin_texture_mode(thread, &mut self.target);
-        for y in 0..map.height {
-            for x in 0..map.height {
-                let texture = &self.wall_tile_sheet;
-                let render_size = 32.0;
-                let tile = map.walls[y as usize][x as usize];
-                if tile == 0 {
-                    continue;
-                }
-
-                let tile_x =
-                    ((tile as i32 & 0x0FFFFFFF) - 65) % (texture.width / render_size as i32);
-                let tile_y =
-                    ((tile as i32 & 0x0FFFFFFF) - 65) / (texture.width / render_size as i32);
-
-                let flags = tile >> 28; // Get first byte from tile
-                let rot = match flags {
-                    0 => 0.0,
-                    6 => 270.0,
-                    10 => 90.0,
-                    12 => 180.0,
-                    _ => 0.0,
-                };
-                let rot_offset = match flags {
-                    0 => Vector2::zero(),
-                    6 => Vector2::new(0.0, render_size),
-                    12 => Vector2::new(render_size, render_size),
-                    10 => Vector2::new(render_size, 0.0),
-                    _ => Vector2::zero(),
-                };
-                tg.draw_texture_pro(
-                    texture,
-                    Rectangle::new(tile_x as f32 * 32.0, tile_y as f32 * 32.0, 32.0, 32.0),
-                    Rectangle::new(
-                        (x as f32 * render_size + camera.offset.x + rot_offset.x) * camera.zoom,
-                        (y as f32 * render_size + camera.offset.y + rot_offset.y) * camera.zoom,
-                        render_size * camera.zoom + 0.001 * 32.0,
-                        render_size * camera.zoom + 0.001 * 32.0,
-                    ),
-                    Vector2::zero(),
-                    rot,
-                    Color::WHITE,
-                );
-            }
-        }
-    }
-
-    // Draws debug information about tiles
-    fn draw_debug_grid(
-        &mut self,
-        thread: &RaylibThread,
-        d: &mut RaylibDrawHandle,
-        map: &WorldMap,
-        camera: &Camera2D,
-    ) {
-        let mut tg = d.begin_texture_mode(thread, &mut self.target);
-        // Drawing debug tile grid
-        for y in 0..map.height {
-            for x in 0..map.height {
-                tg.draw_rectangle_lines_ex(
-                    Rectangle::new(
-                        (x as f32 * 32.0 + camera.offset.x) * camera.zoom,
-                        (y as f32 * 32.0 + camera.offset.y) * camera.zoom,
-                        32.0 * camera.zoom,
-                        32.0 * camera.zoom,
-                    ),
-                    0.5 * camera.zoom,
-                    Color::LIGHTGRAY,
-                )
-            }
-        }
+    // Clears the internal target with black background
+    fn clear_target(&mut self, d: &mut RaylibDrawHandle, thread: &RaylibThread) {
+        d.begin_texture_mode(thread, &mut self.target)
+            .clear_background(Color::BLACK);
     }
 
     // Draws the player
@@ -223,5 +93,144 @@ impl Renderer {
             angle_to_mouse,
             Color::WHITE,
         );
+    }
+
+    // Draws the world to the screen
+    pub fn draw_world(
+        &mut self,
+        d: &mut RaylibDrawHandle,
+        thread: &RaylibThread,
+        player: &Player,
+        camera: &Camera2D,
+        map: &WorldMap,
+        debug_info: &DebugInfo,
+    ) {
+        // Draw world onto the renderers target
+        self.clear_target(d, thread);
+        self.draw_floor(d, thread, map, camera);
+        self.draw_walls(d, thread, map, camera);
+        if debug_info.debug {
+            self.draw_debug_grid(thread, d, map, camera);
+        }
+        self.draw_player(d, thread, camera, player);
+
+        // Render target with shader
+        let mut sh = d.begin_shader_mode(&self.shader);
+        sh.draw_texture(&self.target, 0, 0, Color::WHITE);
+    }
+
+    // Draws all the floors in the world
+    fn draw_floor(
+        &mut self,
+        d: &mut RaylibDrawHandle,
+        thread: &RaylibThread,
+        map: &WorldMap,
+        camera: &Camera2D,
+    ) {
+        let mut tg = d.begin_texture_mode(thread, &mut self.target);
+        for y in 0..map.height {
+            for x in 0..map.width {
+                let texture = &self.floor_tile_sheet;
+                let tile = map.ground[y as usize][x as usize];
+                if tile == 0 {
+                    continue;
+                }
+                let texture_width = self.floor_tile_sheet.width() as u32 / Self::TILE_SIZE as u32;
+                let tile_x = (tile - 1) % texture_width;
+                let tile_y = (tile - 1) / texture_width;
+                tg.draw_texture_pro(
+                    texture,
+                    Rectangle::new(tile_x as f32 * Self::TILE_SIZE, tile_y as f32 * Self::TILE_SIZE, Self::TILE_SIZE, Self::TILE_SIZE),
+                    Rectangle::new(
+                        (x as f32 * Self::TILE_SIZE + camera.offset.x) * camera.zoom,
+                        (y as f32 * Self::TILE_SIZE + camera.offset.y) * camera.zoom,
+                        Self::TILE_SIZE * camera.zoom + 0.01 * Self::TILE_SIZE,
+                        Self::TILE_SIZE * camera.zoom + 0.01 * Self::TILE_SIZE,
+                    ),
+                    Vector2::zero(),
+                    0.0,
+                    Color::WHITE,
+                )
+            }
+        }
+    }
+
+    // Draws the walls
+    fn draw_walls(
+        &mut self,
+        d: &mut RaylibDrawHandle,
+        thread: &RaylibThread,
+        map: &WorldMap,
+        camera: &Camera2D,
+    ) {
+        let mut tg = d.begin_texture_mode(thread, &mut self.target);
+        for y in 0..map.height {
+            for x in 0..map.height {
+                let texture = &self.wall_tile_sheet;
+                let tile = map.walls[y as usize][x as usize];
+                if tile == 0 {
+                    continue;
+                }
+
+                let tile_x =
+                    ((tile as i32 & 0x0FFFFFFF) - 65) % (texture.width / Self::TILE_SIZE as i32);
+                let tile_y =
+                    ((tile as i32 & 0x0FFFFFFF) - 65) / (texture.width / Self::TILE_SIZE as i32);
+
+                let rot = match Self::get_rot(tile) {
+                    0 => 0.0,
+                    1 => 270.0,
+                    2 => 90.0,
+                    3 => 180.0,
+                    _ => unreachable!(),
+                };
+                let rot_offset = match Self::get_rot(tile) {
+                    0 => Vector2::zero(),
+                    1 => Vector2::new(0.0, Self::TILE_SIZE),
+                    2 => Vector2::new(Self::TILE_SIZE, 0.0),
+                    3 => Vector2::new(Self::TILE_SIZE, Self::TILE_SIZE),
+                    _ => unreachable!(),
+                };
+                tg.draw_texture_pro(
+                    texture,
+                    Rectangle::new(tile_x as f32 * Self::TILE_SIZE, tile_y as f32 * Self::TILE_SIZE, Self::TILE_SIZE, Self::TILE_SIZE),
+                    Rectangle::new(
+                        (x as f32 * Self::TILE_SIZE + camera.offset.x + rot_offset.x) * camera.zoom,
+                        (y as f32 * Self::TILE_SIZE + camera.offset.y + rot_offset.y) * camera.zoom,
+                        Self::TILE_SIZE * camera.zoom + 0.001 * Self::TILE_SIZE,
+                        Self::TILE_SIZE * camera.zoom + 0.001 * Self::TILE_SIZE,
+                    ),
+                    Vector2::zero(),
+                    rot,
+                    Color::WHITE,
+                );
+            }
+        }
+    }
+
+    // Draws debug information about tiles
+    fn draw_debug_grid(
+        &mut self,
+        thread: &RaylibThread,
+        d: &mut RaylibDrawHandle,
+        map: &WorldMap,
+        camera: &Camera2D,
+    ) {
+        let mut tg = d.begin_texture_mode(thread, &mut self.target);
+        // Drawing debug tile grid
+        for y in 0..map.height {
+            for x in 0..map.height {
+                tg.draw_rectangle_lines_ex(
+                    Rectangle::new(
+                        (x as f32 * Self::TILE_SIZE + camera.offset.x) * camera.zoom,
+                        (y as f32 * Self::TILE_SIZE + camera.offset.y) * camera.zoom,
+                        Self::TILE_SIZE * camera.zoom,
+                        Self::TILE_SIZE * camera.zoom,
+                    ),
+                    0.33 * camera.zoom,
+                    Color::DARKGREEN,
+                )
+            }
+        }
     }
 }
