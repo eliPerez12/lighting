@@ -37,7 +37,6 @@ fn main() {
         player.handle_movement(&rl);
         player.handle_flashlight(&mut rl, &camera, &mut light_engine);
         camera.handle_player_controls(&mut rl);
-
         camera.track(player.pos, screen_size);
 
         day_cycle.update(&mut rl, &mut light_engine);
@@ -45,6 +44,12 @@ fn main() {
         debug_info.add(format!("FPS: {}", rl.get_fps()));
         debug_info.add(format!("Frame time: {}", rl.get_frame_time()));
         debug_info.add(day_cycle.get_debug_info());
+        debug_info.add(format!("Player Pos: {:?}", player.pos));
+        debug_info.add(format!(
+            "Camera Offset: {:?}",
+            camera.get_world_pos(screen_size)
+        ));
+        debug_info.add(format!("Camera Zoom: {:?}", camera.zoom));
         light_engine.handle_spawning_light(&mut rl, &camera);
 
         renderer.update_target(&mut rl, &thread, screen_size);

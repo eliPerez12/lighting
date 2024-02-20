@@ -98,12 +98,7 @@ impl Renderer {
                 let tile_y = (tile - 1) / texture_width;
                 tg.draw_texture_pro(
                     texture,
-                    Rectangle::new(
-                        tile_x as f32 * 32.0,
-                        tile_y as f32 * 32.0,
-                        32.0,
-                        32.0
-                    ),
+                    Rectangle::new(tile_x as f32 * 32.0, tile_y as f32 * 32.0, 32.0, 32.0),
                     Rectangle::new(
                         (x as f32 * render_size + camera.offset.x) * camera.zoom,
                         (y as f32 * render_size + camera.offset.y) * camera.zoom,
@@ -118,8 +113,7 @@ impl Renderer {
         }
     }
 
-
-    // Draws the walls 
+    // Draws the walls
     fn draw_walls(
         &mut self,
         d: &mut RaylibDrawHandle,
@@ -200,10 +194,6 @@ impl Renderer {
         }
     }
 
-    fn draw_debug_colliders() {
-        
-    }
-
     // Draws the player
     fn draw_player(
         &mut self,
@@ -220,7 +210,6 @@ impl Renderer {
             .to_degrees()
             + 90.0;
 
-        
         tg.draw_texture_pro(
             player.get_animation_frame(),
             Rectangle::new(0.0, 0.0, 26.0, 42.0),

@@ -158,6 +158,8 @@ pub trait ImprovedCamera {
     fn to_world(&self, screen_pos: Vector2) -> Vector2;
     fn handle_player_controls(&mut self, rl: &mut RaylibHandle);
     fn track(&mut self, pos: Vector2, screen_size: Vector2);
+    fn pan_to(&mut self, pos: Vector2, screen_size: Vector2);
+    fn get_world_pos(&self, screen_size: Vector2) -> Vector2;
 }
 
 impl ImprovedCamera for Camera2D {
@@ -168,19 +170,32 @@ impl ImprovedCamera for Camera2D {
         (screen_pos / self.zoom) - self.offset
     }
     fn handle_player_controls(&mut self, rl: &mut RaylibHandle) {
-        self.zoom *= 1.0 + rl.get_mouse_wheel_move() / 40.0;
+        let mut zoom = self.zoom;
+        zoom *= 1.0 + rl.get_mouse_wheel_move() / 40.0;
 
         if rl.is_key_down(KeyboardKey::KEY_MINUS) {
-            self.zoom /= 1.04;
+            zoom /= 1.04;
         }
         if rl.is_key_down(KeyboardKey::KEY_EQUAL) {
-            self.zoom *= 1.04;
+            zoom *= 1.04;
         }
         if rl.is_key_pressed(KeyboardKey::KEY_BACKSPACE) {
-            self.zoom = 1.0;
+            zoom = 1.0;
         }
+        self.zoom = zoom;
     }
-    fn track(&mut self, pos: Vector2, screen_size: Vector2) {
-        self.offset = -pos + screen_size / 2.0 / self.zoom;
+
+    fn track(&mut self, world_pos: Vector2, screen_size: Vector2) {
+        self.offset = -world_pos + screen_size / 2.0 / self.zoom;
+    }
+
+    fn get_world_pos(&self, screen_size: Vector2) -> Vector2 {
+        -self.offset + screen_size / (2.0 * self.zoom)
+    }
+
+    fn pan_to(&mut self, world_pos: Vector2, screen_size: Vector2) {
+        let dist = world_pos - self.get_world_pos(screen_size);
+
+        self.track(self.get_world_pos(screen_size) + dist / 10.0, screen_size);
     }
 }
