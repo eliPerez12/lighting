@@ -3,19 +3,22 @@ use lighting::*;
 use player::*;
 use raylib::prelude::*;
 use renderer::*;
-use world::*;
+use world_map::*;
+use tile::*;
 
 mod debug;
 mod lighting;
 mod player;
 mod renderer;
-mod world;
+mod world_map;
+mod tile;
 
 fn main() {
     let (mut rl, thread) = raylib::init()
         .vsync()
         .width(1000)
         .height(700)
+        //.msaa_4x()
         .title("Lighting")
         .resizable()
         .build();
@@ -26,7 +29,6 @@ fn main() {
     let mut player = Player::new(&mut rl, &thread, &mut light_engine);
     let mut debug_info = DebugInfo::new();
     let map = WorldMap::load_from_file("assets/maps/map0.tmx", 30, 20);
-
     camera.zoom = 3.5;
     player.pos = Vector2::new(64.0, 64.0);
 
