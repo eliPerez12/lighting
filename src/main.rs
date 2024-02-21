@@ -3,22 +3,22 @@ use lighting::*;
 use player::*;
 use raylib::prelude::*;
 use renderer::*;
-use world_map::*;
 use tile::*;
+use world_map::*;
 
 mod debug;
 mod lighting;
 mod player;
 mod renderer;
-mod world_map;
 mod tile;
+mod world_map;
 
 fn main() {
     let (mut rl, thread) = raylib::init()
         .vsync()
         .width(1000)
         .height(700)
-        //.msaa_4x()
+        .msaa_4x()
         .title("Lighting")
         .resizable()
         .build();
@@ -32,6 +32,7 @@ fn main() {
     camera.zoom = 3.5;
     player.pos = Vector2::new(64.0, 64.0);
 
+    
     while !rl.window_should_close() {
         /* ---- Update ---- */
         let screen_size = Vector2::new(rl.get_screen_width() as f32, rl.get_screen_height() as f32);

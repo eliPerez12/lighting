@@ -1,9 +1,9 @@
-use crate::{Light, LightEngine, LightHandle};
+use crate::{Light, LightEngine, LightHandle, Tile, TileRotation, Wall};
 use raylib::prelude::*;
 
 pub struct WorldMap {
-    pub ground: Vec<Vec<u32>>,
-    pub walls: Vec<Vec<u32>>,
+    pub ground: Vec<Vec<Tile>>,
+    pub walls: Vec<Vec<Wall>>,
     pub width: u32,
     pub height: u32,
 }
@@ -22,23 +22,24 @@ impl WorldMap {
         }
         // Parsing background layer
         for y in 0..map_height {
-            let mut floor_map_line = vec![];
             let mut buffer = String::new();
             reader.read_line(&mut buffer).unwrap();
             let buffer = &buffer.replace("\r\n", "");
-            let line = buffer
+            let floor_map_line = buffer
                 .split(',')
                 .filter(|s| s != &"")
                 .map(|s| {
                     if let Ok(tile) = s.parse::<u32>() {
-                        tile & 0xFFFFFCF // Removing 64 bit
+                        Tile {
+                            varient: tile & 0x0FFFFFCF, // Removing 64 bit and first byte
+                            rotation: TileRotation::from_raw_u32(tile),
+                        }
                     } else {
                         dbg!(s, y, buffer);
                         panic!("Unable to parse map");
                     }
                 })
-                .collect::<Vec<u32>>();
-            (0..30).for_each(|x| floor_map_line.push(line[x]));
+                .collect::<Vec<Tile>>();
             ground.push(floor_map_line);
         }
         // Skipping another 4 lines
@@ -47,23 +48,25 @@ impl WorldMap {
         }
         // Parsing wall layer
         for y in 0..map_height {
-            let mut wall_map_line = vec![];
             let mut buffer = String::new();
             reader.read_line(&mut buffer).unwrap();
             let buffer = &buffer.replace("\r\n", "");
-            let line = buffer
+            let wall_map_line = buffer
                 .split(',')
                 .filter(|s| s != &"")
                 .map(|s| {
                     if let Ok(tile) = s.parse::<u32>() {
-                        tile
+                        Wall {
+                            varient: tile & 0x0FFFFFCF, // Removing 64 bit and first byte
+                            rotation: TileRotation::from_raw_u32(tile),
+                            colliders: vec![],
+                        }
                     } else {
                         dbg!(s, y, buffer);
                         panic!("Unable to parse map");
                     }
                 })
-                .collect::<Vec<u32>>();
-            (0..30).for_each(|x| wall_map_line.push(line[x]));
+                .collect::<Vec<Wall>>();
             walls.push(wall_map_line);
         }
         assert!(ground.len() == map_height as usize);
@@ -83,7 +86,7 @@ pub struct DayCycle {
 }
 
 impl DayCycle {
-    pub const FULL_CYCLE_LENGTH: f32 = 300.0;
+    pub const FULL_CYCLE_LENGTH: f32 = 800.0;
     pub fn new(light_engine: &mut LightEngine) -> DayCycle {
         DayCycle {
             time: 0.25 * DayCycle::FULL_CYCLE_LENGTH,
@@ -95,6 +98,18 @@ impl DayCycle {
         if self.time > Self::FULL_CYCLE_LENGTH {
             self.time -= Self::FULL_CYCLE_LENGTH;
         };
+        if rl.is_key_pressed(KeyboardKey::KEY_SEVEN) {
+            self.time = Self::FULL_CYCLE_LENGTH * 0.0;
+        }
+        if rl.is_key_pressed(KeyboardKey::KEY_EIGHT) {
+            self.time = Self::FULL_CYCLE_LENGTH * 0.25;
+        }
+        if rl.is_key_pressed(KeyboardKey::KEY_NINE) {
+            self.time = Self::FULL_CYCLE_LENGTH * 0.5;
+        }
+        if rl.is_key_pressed(KeyboardKey::KEY_ZERO) {
+            self.time = Self::FULL_CYCLE_LENGTH * 0.75;
+        }
         light_engine.update_light(self.ambient_light_handle(), self.get_ambient_light());
     }
     pub fn ambient_light_handle(&self) -> &LightHandle {
@@ -151,6 +166,8 @@ impl DayCycle {
 // Adding additional methods to raylib camera2d
 pub trait ImprovedCamera {
     fn to_screen(&self, world_pos: Vector2) -> Vector2;
+    fn to_screen_x(&self, world_pos_x: f32) -> f32;
+    fn to_screen_y(&self, world_pos_y: f32) -> f32;
     fn to_world(&self, screen_pos: Vector2) -> Vector2;
     fn handle_player_controls(&mut self, rl: &mut RaylibHandle);
     fn track(&mut self, pos: Vector2, screen_size: Vector2);
@@ -161,6 +178,12 @@ pub trait ImprovedCamera {
 impl ImprovedCamera for Camera2D {
     fn to_screen(&self, world_pos: Vector2) -> Vector2 {
         (world_pos + self.offset) * self.zoom
+    }
+    fn to_screen_x(&self, world_pos_x: f32) -> f32 {
+        (world_pos_x + self.offset.x) * self.zoom
+    }
+    fn to_screen_y(&self, world_pos_y: f32) -> f32 {
+        (world_pos_y + self.offset.y) * self.zoom
     }
     fn to_world(&self, screen_pos: Vector2) -> Vector2 {
         (screen_pos / self.zoom) - self.offset

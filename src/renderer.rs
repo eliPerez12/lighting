@@ -1,6 +1,8 @@
 use crate::{player::*, DebugInfo, ImprovedCamera, WorldMap};
 use raylib::prelude::*;
 
+pub const TILE_SIZE: f32 = 32.0;
+
 pub struct Renderer {
     pub shader: Shader,
     target: RenderTexture2D,
@@ -8,8 +10,8 @@ pub struct Renderer {
     wall_tile_sheet: Texture2D,
 }
 
+
 impl Renderer {
-    const TILE_SIZE: f32 = 32.0;
     pub fn new(rl: &mut RaylibHandle, thread: &RaylibThread) -> Renderer {
         Renderer {
             shader: rl.load_shader_from_memory(
@@ -44,17 +46,6 @@ impl Renderer {
             self.target = rl
                 .load_render_texture(thread, screen_size.x as u32, screen_size.y as u32)
                 .unwrap();
-        }
-    }
-
-    fn get_rot(tile: u32) -> i32 {
-        let flags = tile >> 28; // Get first byte from tile
-        match flags {
-            0 => 0,
-            6 => 1,
-            10 => 2,
-            12 => 3,
-            _ => panic!(),
         }
     }
 
@@ -110,7 +101,7 @@ impl Renderer {
             player_screen_pos.x as i32,
             player_screen_pos.y as i32,
             8.0 * camera.zoom,
-            Color::new(0, 0, 0, 50)
+            Color::new(0, 0, 0, 50),
         );
         tg.draw_texture_pro(
             player.get_animation_frame(),
@@ -139,26 +130,24 @@ impl Renderer {
         for y in 0..map.height {
             for x in 0..map.width {
                 let texture = &self.floor_tile_sheet;
-                let tile = map.ground[y as usize][x as usize];
-                if tile == 0 {
-                    continue;
-                }
-                let texture_width = self.floor_tile_sheet.width() as u32 / Self::TILE_SIZE as u32;
-                let tile_x = (tile - 1) % texture_width;
-                let tile_y = (tile - 1) / texture_width;
+                let tile = &map.ground[y as usize][x as usize];
+                let texture_width = self.floor_tile_sheet.width() as u32 / TILE_SIZE as u32;
+                let tile_x = (tile.varient - 1) % texture_width;
+                let tile_y = (tile.varient - 1) / texture_width;
+
                 tg.draw_texture_pro(
                     texture,
                     Rectangle::new(
-                        tile_x as f32 * Self::TILE_SIZE,
-                        tile_y as f32 * Self::TILE_SIZE,
-                        Self::TILE_SIZE,
-                        Self::TILE_SIZE,
+                        tile_x as f32 * TILE_SIZE,
+                        tile_y as f32 * TILE_SIZE,
+                        TILE_SIZE,
+                        TILE_SIZE,
                     ),
                     Rectangle::new(
-                        (x as f32 * Self::TILE_SIZE + camera.offset.x) * camera.zoom,
-                        (y as f32 * Self::TILE_SIZE + camera.offset.y) * camera.zoom,
-                        Self::TILE_SIZE * camera.zoom + 0.01 * Self::TILE_SIZE,
-                        Self::TILE_SIZE * camera.zoom + 0.01 * Self::TILE_SIZE,
+                        camera.to_screen_x(x as f32 * TILE_SIZE),
+                        camera.to_screen_y(y as f32 * TILE_SIZE),
+                        TILE_SIZE * camera.zoom + 0.01 * TILE_SIZE,
+                        TILE_SIZE * camera.zoom + 0.01 * TILE_SIZE,
                     ),
                     Vector2::zero(),
                     0.0,
@@ -180,46 +169,28 @@ impl Renderer {
         for y in 0..map.height {
             for x in 0..map.height {
                 let texture = &self.wall_tile_sheet;
-                let tile = map.walls[y as usize][x as usize];
-                if tile == 0 {
-                    continue;
-                }
+                let tile = &map.walls[y as usize][x as usize];
 
-                let tile_x =
-                    ((tile as i32 & 0x0FFFFFFF) - 1) % (texture.width / Self::TILE_SIZE as i32);
-                let tile_y =
-                    ((tile as i32 & 0x0FFFFFFF) - 1) / (texture.width / Self::TILE_SIZE as i32);
+                let tile_x = (tile.varient as i32 - 1) % (texture.width / TILE_SIZE as i32);
+                let tile_y = (tile.varient as i32 - 1) / (texture.width / TILE_SIZE as i32);
+                let rot_offset = tile.rotation.get_rotation_offset();
 
-                let rot = match Self::get_rot(tile) {
-                    0 => 0.0,
-                    1 => 270.0,
-                    2 => 90.0,
-                    3 => 180.0,
-                    _ => unreachable!(),
-                };
-                let rot_offset = match Self::get_rot(tile) {
-                    0 => Vector2::zero(),
-                    1 => Vector2::new(0.0, Self::TILE_SIZE),
-                    2 => Vector2::new(Self::TILE_SIZE, 0.0),
-                    3 => Vector2::new(Self::TILE_SIZE, Self::TILE_SIZE),
-                    _ => unreachable!(),
-                };
                 tg.draw_texture_pro(
                     texture,
                     Rectangle::new(
-                        tile_x as f32 * Self::TILE_SIZE,
-                        tile_y as f32 * Self::TILE_SIZE,
-                        Self::TILE_SIZE,
-                        Self::TILE_SIZE,
+                        tile_x as f32 * TILE_SIZE,
+                        tile_y as f32 * TILE_SIZE,
+                        TILE_SIZE,
+                        TILE_SIZE,
                     ),
                     Rectangle::new(
-                        (x as f32 * Self::TILE_SIZE + camera.offset.x + rot_offset.x) * camera.zoom,
-                        (y as f32 * Self::TILE_SIZE + camera.offset.y + rot_offset.y) * camera.zoom,
-                        Self::TILE_SIZE * camera.zoom + 0.001 * Self::TILE_SIZE,
-                        Self::TILE_SIZE * camera.zoom + 0.001 * Self::TILE_SIZE,
+                        camera.to_screen_x(x as f32 * TILE_SIZE + rot_offset.x),
+                        camera.to_screen_x(y as f32 * TILE_SIZE + rot_offset.y),
+                        TILE_SIZE * camera.zoom + 0.001 * TILE_SIZE,
+                        TILE_SIZE * camera.zoom + 0.001 * TILE_SIZE,
                     ),
                     Vector2::zero(),
-                    rot,
+                    tile.rotation.get_angle(),
                     Color::WHITE,
                 );
             }
@@ -240,10 +211,10 @@ impl Renderer {
             for x in 0..map.height {
                 tg.draw_rectangle_lines_ex(
                     Rectangle::new(
-                        (x as f32 * Self::TILE_SIZE + camera.offset.x) * camera.zoom,
-                        (y as f32 * Self::TILE_SIZE + camera.offset.y) * camera.zoom,
-                        Self::TILE_SIZE * camera.zoom,
-                        Self::TILE_SIZE * camera.zoom,
+                        camera.to_screen_x(x as f32 * TILE_SIZE),
+                        camera.to_screen_y(y as f32 * TILE_SIZE),
+                        TILE_SIZE * camera.zoom,
+                        TILE_SIZE * camera.zoom,
                     ),
                     0.33 * camera.zoom,
                     Color::DARKGREEN,
@@ -263,18 +234,17 @@ impl Renderer {
         // Drawing debug tile grid
         for y in 0..map.height {
             for x in 0..map.height {
-                let tile = map.walls[y as usize][x as usize];
-                if tile == 0 {
+                let tile = &map.walls[y as usize][x as usize];
+                if tile.varient == 0 {
                     continue;
                 }
-                dbg!(tile & 0x0FFFFFFF);
-                let rect = match tile - 65 {
+                let rect = match tile.varient {
                     0 => Rectangle::new(0.0, 0.0, 8.0, 32.0),
                     _ => Rectangle::new(0.0, 0.0, 0.0, 0.0),
                 };
                 tg.draw_rectangle(
-                    ((rect.x + x as f32 * Self::TILE_SIZE + camera.offset.x) * camera.zoom) as i32,
-                    ((rect.y + y as f32 * Self::TILE_SIZE + camera.offset.y) * camera.zoom) as i32,
+                    camera.to_screen_x(rect.x + x as f32 * TILE_SIZE) as i32,
+                    camera.to_screen_y(rect.y + y as f32 * TILE_SIZE) as i32,
                     (rect.width * camera.zoom) as i32,
                     (rect.height * camera.zoom) as i32,
                     Color::BLUE,
