@@ -31,7 +31,7 @@ impl WorldMap {
                 .filter(|s| s != &"")
                 .map(|s| {
                     if let Ok(tile) = s.parse::<u32>() {
-                        tile
+                        tile & 0xFFFFFCF // Removing 64 bit
                     } else {
                         dbg!(s, y, buffer);
                         panic!("Unable to parse map");
@@ -56,10 +56,6 @@ impl WorldMap {
                 .filter(|s| s != &"")
                 .map(|s| {
                     if let Ok(tile) = s.parse::<u32>() {
-                        if tile != 0 {
-                            let rot_bitmap = tile & 0xF0000000;
-                            dbg!(rot_bitmap);
-                        }
                         tile
                     } else {
                         dbg!(s, y, buffer);

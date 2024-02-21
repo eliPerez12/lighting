@@ -44,7 +44,6 @@ fn main() {
         debug_info.add(format!("FPS: {}", rl.get_fps()));
         debug_info.add(format!("Frame time: {}", rl.get_frame_time()));
         debug_info.add(day_cycle.get_debug_info());
-        debug_info.add(format!("Camera Zoom: {:?}", camera.zoom));
         light_engine.handle_spawning_light(&mut rl, &camera);
 
         renderer.update_target(&mut rl, &thread, screen_size);
