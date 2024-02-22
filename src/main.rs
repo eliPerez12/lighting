@@ -32,7 +32,6 @@ fn main() {
     camera.zoom = 3.5;
     player.pos = Vector2::new(64.0, 64.0);
 
-    
     while !rl.window_should_close() {
         /* ---- Update ---- */
         let screen_size = Vector2::new(rl.get_screen_width() as f32, rl.get_screen_height() as f32);

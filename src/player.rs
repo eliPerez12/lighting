@@ -4,7 +4,12 @@ use raylib::prelude::*;
 pub struct Player {
     pub pos: Vector2,
     animation: PlayerAnimation,
-    flashlight: (LightHandle, bool),
+    flashlight: FlashLight,
+}
+
+struct FlashLight {
+    light_handle: LightHandle,
+    active: bool,
 }
 
 impl Player {
@@ -17,7 +22,10 @@ impl Player {
         Player {
             pos: Vector2::zero(),
             animation: PlayerAnimation::new(rl, thread),
-            flashlight: (light_engine.spawn_light(Light::default_cone()), true),
+            flashlight: FlashLight {
+                light_handle: light_engine.spawn_light(Light::default_cone()),
+                active: true,
+            },
         }
     }
 
@@ -40,7 +48,7 @@ impl Player {
             self.pos.x += player_speed;
         }
         if rl.is_key_pressed(KeyboardKey::KEY_F) {
-            self.flashlight.1 = !self.flashlight.1;
+            self.flashlight.active = !self.flashlight.active;
         }
         self.animation.handle_animation(rl);
     }
@@ -58,15 +66,15 @@ impl Player {
         let rotation = dy.atan2(dx) + PI as f32;
 
         light_engine.update_light(
-            &self.flashlight.0,
+            &self.flashlight.light_handle,
             Light::Cone {
                 pos: self.pos + Vector2::new(dx, -dy).normalized() * 5.0,
-                color: if self.flashlight.1 {
+                color: if self.flashlight.active {
                     Color::WHEAT.into()
                 } else {
                     Color::BLACK.into()
                 },
-                radius: 550.0,
+                radius: 250.0,
                 angle: PI as f32 / 2.0,
                 rotation,
             },

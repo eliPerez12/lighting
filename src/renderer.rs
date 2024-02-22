@@ -10,7 +10,6 @@ pub struct Renderer {
     wall_tile_sheet: Texture2D,
 }
 
-
 impl Renderer {
     pub fn new(rl: &mut RaylibHandle, thread: &RaylibThread) -> Renderer {
         Renderer {
@@ -71,7 +70,7 @@ impl Renderer {
         self.draw_walls(d, thread, map, camera);
         if debug_info.debug {
             self.draw_debug_grid(thread, d, map, camera);
-            //self.draw_debug_colliders(thread, d, map, camera);
+            self.draw_debug_colliders(thread, d, map, camera);
         }
         self.draw_player(d, thread, camera, player);
 
@@ -135,6 +134,8 @@ impl Renderer {
                 let tile_x = (tile.varient - 1) % texture_width;
                 let tile_y = (tile.varient - 1) / texture_width;
 
+                let rot_offset = tile.rotation.get_rotation_offset();
+
                 tg.draw_texture_pro(
                     texture,
                     Rectangle::new(
@@ -144,8 +145,8 @@ impl Renderer {
                         TILE_SIZE,
                     ),
                     Rectangle::new(
-                        camera.to_screen_x(x as f32 * TILE_SIZE),
-                        camera.to_screen_y(y as f32 * TILE_SIZE),
+                        camera.to_screen_x(x as f32 * TILE_SIZE + rot_offset.x),
+                        camera.to_screen_y(y as f32 * TILE_SIZE + rot_offset.y),
                         TILE_SIZE * camera.zoom + 0.01 * TILE_SIZE,
                         TILE_SIZE * camera.zoom + 0.01 * TILE_SIZE,
                     ),
@@ -169,30 +170,30 @@ impl Renderer {
         for y in 0..map.height {
             for x in 0..map.height {
                 let texture = &self.wall_tile_sheet;
-                let tile = &map.walls[y as usize][x as usize];
+                if let Some(tile) = &map.walls[y as usize][x as usize] {
+                    let tile_x = (tile.varient as i32 - 1) % (texture.width / TILE_SIZE as i32);
+                    let tile_y = (tile.varient as i32 - 1) / (texture.width / TILE_SIZE as i32);
+                    let rot_offset = tile.rotation.get_rotation_offset();
 
-                let tile_x = (tile.varient as i32 - 1) % (texture.width / TILE_SIZE as i32);
-                let tile_y = (tile.varient as i32 - 1) / (texture.width / TILE_SIZE as i32);
-                let rot_offset = tile.rotation.get_rotation_offset();
-
-                tg.draw_texture_pro(
-                    texture,
-                    Rectangle::new(
-                        tile_x as f32 * TILE_SIZE,
-                        tile_y as f32 * TILE_SIZE,
-                        TILE_SIZE,
-                        TILE_SIZE,
-                    ),
-                    Rectangle::new(
-                        camera.to_screen_x(x as f32 * TILE_SIZE + rot_offset.x),
-                        camera.to_screen_x(y as f32 * TILE_SIZE + rot_offset.y),
-                        TILE_SIZE * camera.zoom + 0.001 * TILE_SIZE,
-                        TILE_SIZE * camera.zoom + 0.001 * TILE_SIZE,
-                    ),
-                    Vector2::zero(),
-                    tile.rotation.get_angle(),
-                    Color::WHITE,
-                );
+                    tg.draw_texture_pro(
+                        texture,
+                        Rectangle::new(
+                            tile_x as f32 * TILE_SIZE,
+                            tile_y as f32 * TILE_SIZE,
+                            TILE_SIZE,
+                            TILE_SIZE,
+                        ),
+                        Rectangle::new(
+                            camera.to_screen_x(x as f32 * TILE_SIZE + rot_offset.x),
+                            camera.to_screen_y(y as f32 * TILE_SIZE + rot_offset.y),
+                            TILE_SIZE * camera.zoom + 0.001 * TILE_SIZE,
+                            TILE_SIZE * camera.zoom + 0.001 * TILE_SIZE,
+                        ),
+                        Vector2::zero(),
+                        tile.rotation.get_angle(),
+                        Color::WHITE,
+                    );
+                }
             }
         }
     }
@@ -208,7 +209,7 @@ impl Renderer {
         let mut tg = d.begin_texture_mode(thread, &mut self.target);
         // Drawing debug tile grid
         for y in 0..map.height {
-            for x in 0..map.height {
+            for x in 0..map.width {
                 tg.draw_rectangle_lines_ex(
                     Rectangle::new(
                         camera.to_screen_x(x as f32 * TILE_SIZE),
@@ -216,14 +217,14 @@ impl Renderer {
                         TILE_SIZE * camera.zoom,
                         TILE_SIZE * camera.zoom,
                     ),
-                    0.33 * camera.zoom,
-                    Color::DARKGREEN,
+                    0.25 * camera.zoom,
+                    Color::YELLOW,
                 )
             }
         }
     }
 
-    fn _draw_debug_colliders(
+    fn draw_debug_colliders(
         &mut self,
         thread: &RaylibThread,
         d: &mut RaylibDrawHandle,
@@ -234,21 +235,17 @@ impl Renderer {
         // Drawing debug tile grid
         for y in 0..map.height {
             for x in 0..map.height {
-                let tile = &map.walls[y as usize][x as usize];
-                if tile.varient == 0 {
-                    continue;
+                if let Some(tile) = &map.walls[y as usize][x as usize] {
+                    for rect in &tile.get_collider().rects {
+                        tg.draw_rectangle(
+                            camera.to_screen_x(rect.x + x as f32 * TILE_SIZE) as i32,
+                            camera.to_screen_y(rect.y + y as f32 * TILE_SIZE) as i32,
+                            (rect.width * camera.zoom) as i32,
+                            (rect.height * camera.zoom) as i32,
+                            Color::BLUE,
+                        )
+                    }
                 }
-                let rect = match tile.varient {
-                    0 => Rectangle::new(0.0, 0.0, 8.0, 32.0),
-                    _ => Rectangle::new(0.0, 0.0, 0.0, 0.0),
-                };
-                tg.draw_rectangle(
-                    camera.to_screen_x(rect.x + x as f32 * TILE_SIZE) as i32,
-                    camera.to_screen_y(rect.y + y as f32 * TILE_SIZE) as i32,
-                    (rect.width * camera.zoom) as i32,
-                    (rect.height * camera.zoom) as i32,
-                    Color::BLUE,
-                )
             }
         }
     }

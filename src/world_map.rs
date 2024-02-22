@@ -3,7 +3,7 @@ use raylib::prelude::*;
 
 pub struct WorldMap {
     pub ground: Vec<Vec<Tile>>,
-    pub walls: Vec<Vec<Wall>>,
+    pub walls: Vec<Vec<Option<Wall>>>,
     pub width: u32,
     pub height: u32,
 }
@@ -56,17 +56,21 @@ impl WorldMap {
                 .filter(|s| s != &"")
                 .map(|s| {
                     if let Ok(tile) = s.parse::<u32>() {
-                        Wall {
-                            varient: tile & 0x0FFFFFCF, // Removing 64 bit and first byte
-                            rotation: TileRotation::from_raw_u32(tile),
-                            colliders: vec![],
+                        if tile != 0 {
+                            Some(Wall {
+                                varient: tile & 0x0FFFFFCF, // Removing 64 bit and first byte
+                                rotation: TileRotation::from_raw_u32(tile),
+                                colliders: vec![],
+                            })
+                        } else {
+                            None
                         }
                     } else {
                         dbg!(s, y, buffer);
                         panic!("Unable to parse map");
                     }
                 })
-                .collect::<Vec<Wall>>();
+                .collect::<Vec<Option<Wall>>>();
             walls.push(wall_map_line);
         }
         assert!(ground.len() == map_height as usize);
@@ -214,7 +218,6 @@ impl ImprovedCamera for Camera2D {
 
     fn pan_to(&mut self, world_pos: Vector2, screen_size: Vector2) {
         let dist = world_pos - self.get_world_pos(screen_size);
-
         self.track(self.get_world_pos(screen_size) + dist / 10.0, screen_size);
     }
 }

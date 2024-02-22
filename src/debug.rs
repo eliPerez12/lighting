@@ -10,7 +10,7 @@ impl DebugInfo {
     pub fn new() -> DebugInfo {
         DebugInfo {
             info: vec![],
-            debug: true,
+            debug: false,
         }
     }
     pub fn update(&mut self, rl: &mut RaylibHandle) {

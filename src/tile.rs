@@ -8,6 +8,16 @@ pub struct Wall {
     pub colliders: Vec<Rectangle>,
 }
 
+impl Wall {
+    pub fn get_collider(&self) -> Collider {
+        match self.varient {
+            _ => Collider {
+                rects: vec![self.rotation.get_collider_rect()],
+            },
+        }
+    }
+}
+
 pub struct Tile {
     pub varient: u32,
     pub rotation: TileRotation,
@@ -19,6 +29,12 @@ pub enum TileRotation {
     Two,
     Three,
 }
+
+pub struct Collider {
+    pub rects: Vec<Rectangle>,
+}
+
+impl Tile {}
 
 impl TileRotation {
     pub fn from_raw_u32(tile: u32) -> TileRotation {
@@ -40,12 +56,24 @@ impl TileRotation {
             TileRotation::Three => 180.0,
         }
     }
+
     pub fn get_rotation_offset(&self) -> Vector2 {
         match self {
             TileRotation::None => Vector2::zero(),
             TileRotation::One => Vector2::new(0.0, TILE_SIZE),
             TileRotation::Two => Vector2::new(TILE_SIZE, 0.0),
             TileRotation::Three => Vector2::new(TILE_SIZE, TILE_SIZE),
+        }
+    }
+
+    fn get_collider_rect(&self) -> Rectangle {
+        match self {
+            _ => Rectangle {
+                x: 0.0,
+                y: 0.0,
+                width: 8.0,
+                height: 32.0,
+            },
         }
     }
 }
