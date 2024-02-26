@@ -1,4 +1,6 @@
-use crate::{Light, LightEngine, LightHandle, Tile, TileRotation, Wall};
+use crate::{
+    GroundVarient, Light, LightEngine, LightHandle, Tile, TileRotation, Wall, WallVarient,
+};
 use raylib::prelude::*;
 
 pub struct WorldMap {
@@ -29,10 +31,14 @@ impl WorldMap {
                 .split(',')
                 .filter(|s| s != &"")
                 .map(|s| {
-                    if let Ok(tile) = s.parse::<u32>() {
-                        Tile {
-                            varient: tile & 0x0FFFFFCF, // Removing 64 bit and first byte
-                            rotation: TileRotation::from_raw_u32(tile),
+                    if let Ok(ground) = s.parse::<u32>() {
+                        if let Some(varient) = GroundVarient::from_raw_u32(ground) {
+                            Tile {
+                                varient, // Removing 64 bit and first byte
+                                rotation: TileRotation::from_raw_u32(ground),
+                            }
+                        } else {
+                            panic!("Unable to parse map");
                         }
                     } else {
                         dbg!(s, y, buffer);
@@ -55,12 +61,11 @@ impl WorldMap {
                 .split(',')
                 .filter(|s| s != &"")
                 .map(|s| {
-                    if let Ok(tile) = s.parse::<u32>() {
-                        if tile != 0 {
-                            Some(Wall {
-                                varient: tile & 0x0FFFFFCF, // Removing 64 bit and first byte
-                                rotation: TileRotation::from_raw_u32(tile),
-                                colliders: vec![],
+                    if let Ok(wall) = s.parse::<u32>() {
+                        if wall != 0 {
+                            WallVarient::from_raw_u32(wall).map(|varient| Wall {
+                                varient, // Removing 64 bit and first byte
+                                rotation: TileRotation::from_raw_u32(wall),
                             })
                         } else {
                             None
@@ -74,7 +79,7 @@ impl WorldMap {
             walls.push(wall_map_line);
         }
         assert!(ground.len() == map_height as usize);
-        assert!(walls.len() == map_height as usize);
+        dbg!(&walls);
         WorldMap {
             ground,
             walls,
@@ -172,6 +177,7 @@ pub trait ImprovedCamera {
     fn to_screen(&self, world_pos: Vector2) -> Vector2;
     fn to_screen_x(&self, world_pos_x: f32) -> f32;
     fn to_screen_y(&self, world_pos_y: f32) -> f32;
+    fn to_screen_rect(&self, rect: &Rectangle) -> Rectangle;
     fn to_world(&self, screen_pos: Vector2) -> Vector2;
     fn handle_player_controls(&mut self, rl: &mut RaylibHandle);
     fn track(&mut self, pos: Vector2, screen_size: Vector2);
@@ -183,15 +189,28 @@ impl ImprovedCamera for Camera2D {
     fn to_screen(&self, world_pos: Vector2) -> Vector2 {
         (world_pos + self.offset) * self.zoom
     }
+
     fn to_screen_x(&self, world_pos_x: f32) -> f32 {
         (world_pos_x + self.offset.x) * self.zoom
     }
+
     fn to_screen_y(&self, world_pos_y: f32) -> f32 {
         (world_pos_y + self.offset.y) * self.zoom
     }
+
+    fn to_screen_rect(&self, rect: &Rectangle) -> Rectangle {
+        Rectangle {
+            x: (rect.x + self.offset.x) * self.zoom,
+            y: (rect.y + self.offset.y) * self.zoom,
+            width: rect.width * self.zoom,
+            height: rect.height * self.zoom,
+        }
+    }
+
     fn to_world(&self, screen_pos: Vector2) -> Vector2 {
         (screen_pos / self.zoom) - self.offset
     }
+
     fn handle_player_controls(&mut self, rl: &mut RaylibHandle) {
         let mut zoom = self.zoom;
         zoom *= 1.0 + rl.get_mouse_wheel_move() / 40.0;

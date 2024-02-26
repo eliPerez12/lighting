@@ -68,12 +68,12 @@ impl Renderer {
         self.clear_target(d, thread);
         self.draw_floor(d, thread, map, camera);
         self.draw_walls(d, thread, map, camera);
-        if debug_info.debug {
-            self.draw_debug_grid(thread, d, map, camera);
-            self.draw_debug_colliders(thread, d, map, camera);
-        }
         self.draw_player(d, thread, camera, player);
 
+        if debug_info.debug {
+            // self.draw_debug_grid(thread, d, map, camera);
+            self.draw_debug_colliders(thread, d, player, map, camera);
+        }
         // Render target with shader
         let mut sh = d.begin_shader_mode(&self.shader);
         sh.draw_texture(&self.target, 0, 0, Color::WHITE);
@@ -131,8 +131,8 @@ impl Renderer {
                 let texture = &self.floor_tile_sheet;
                 let tile = &map.ground[y as usize][x as usize];
                 let texture_width = self.floor_tile_sheet.width() as u32 / TILE_SIZE as u32;
-                let tile_x = (tile.varient - 1) % texture_width;
-                let tile_y = (tile.varient - 1) / texture_width;
+                let tile_x = (tile.varient as u32) % texture_width;
+                let tile_y = (tile.varient as u32) / texture_width;
 
                 let rot_offset = tile.rotation.get_rotation_offset();
 
@@ -171,8 +171,8 @@ impl Renderer {
             for x in 0..map.height {
                 let texture = &self.wall_tile_sheet;
                 if let Some(tile) = &map.walls[y as usize][x as usize] {
-                    let tile_x = (tile.varient as i32 - 1) % (texture.width / TILE_SIZE as i32);
-                    let tile_y = (tile.varient as i32 - 1) / (texture.width / TILE_SIZE as i32);
+                    let tile_x = (tile.varient as i32) % (texture.width / TILE_SIZE as i32);
+                    let tile_y = (tile.varient as i32) / (texture.width / TILE_SIZE as i32);
                     let rot_offset = tile.rotation.get_rotation_offset();
 
                     tg.draw_texture_pro(
@@ -199,7 +199,7 @@ impl Renderer {
     }
 
     // Draws debug information about tiles
-    fn draw_debug_grid(
+    fn _draw_debug_grid(
         &mut self,
         thread: &RaylibThread,
         d: &mut RaylibDrawHandle,
@@ -217,7 +217,7 @@ impl Renderer {
                         TILE_SIZE * camera.zoom,
                         TILE_SIZE * camera.zoom,
                     ),
-                    0.25 * camera.zoom,
+                    0.17 * camera.zoom,
                     Color::YELLOW,
                 )
             }
@@ -228,6 +228,7 @@ impl Renderer {
         &mut self,
         thread: &RaylibThread,
         d: &mut RaylibDrawHandle,
+        player: &Player,
         map: &WorldMap,
         camera: &Camera2D,
     ) {
@@ -235,15 +236,36 @@ impl Renderer {
         // Drawing debug tile grid
         for y in 0..map.height {
             for x in 0..map.height {
-                if let Some(tile) = &map.walls[y as usize][x as usize] {
-                    for rect in &tile.get_collider().rects {
+                if let Some(wall) = &map.walls[y as usize][x as usize] {
+                    for rect in &wall
+                        .get_collider()
+                        .with_pos(Vector2::new(x as f32 * TILE_SIZE, y as f32 * TILE_SIZE))
+                        .rects
+                    {
                         tg.draw_rectangle(
-                            camera.to_screen_x(rect.x + x as f32 * TILE_SIZE) as i32,
-                            camera.to_screen_y(rect.y + y as f32 * TILE_SIZE) as i32,
-                            (rect.width * camera.zoom) as i32,
-                            (rect.height * camera.zoom) as i32,
+                            camera.to_screen_x(rect.x - 0.25) as i32,
+                            camera.to_screen_y(rect.y - 0.25) as i32,
+                            ((rect.width + 0.25) * camera.zoom) as i32,
+                            ((rect.height + 0.25) * camera.zoom) as i32,
                             Color::BLUE,
                         )
+                    }
+                }
+            }
+        }
+
+        tg.draw_rectangle_rec(camera.to_screen_rect(&player.get_world_collider().rects[0]), Color::RED);
+
+        for (y, wall_line) in map.walls.iter().enumerate() {
+            for (x, wall) in wall_line.iter().enumerate() {
+                if let Some(wall) = wall {
+                    if let Some(collider) = wall
+                        .get_collider()
+                        .with_pos(Vector2::new(x as f32 * 32.0, y as f32 * 32.0))
+                        .collides(&player.get_world_collider()) {
+                        println!("COLLIDER");
+                        dbg!(collider);
+                        tg.draw_rectangle_rec(camera.to_screen_rect(&collider), Color::WHITE);
                     }
                 }
             }

@@ -1,4 +1,6 @@
-use crate::{ImprovedCamera, Light, LightEngine, LightHandle};
+use crate::{
+    Collider, ImprovedCamera, Light, LightEngine, LightHandle, WorldMap,
+};
 use raylib::prelude::*;
 
 pub struct Player {
@@ -26,6 +28,19 @@ impl Player {
                 light_handle: light_engine.spawn_light(Light::default_cone()),
                 active: true,
             },
+            
+        }
+    }
+
+    pub fn get_world_collider(&self) -> Collider {
+        Collider {
+            rects: vec![Rectangle {
+                x: self.pos.x - 6.0,
+                y: self.pos.y - 6.0,
+                width: 12.0,
+                height: 12.0,
+            }],
+            circles: vec![],
         }
     }
 
@@ -33,7 +48,7 @@ impl Player {
         &self.animation.frames[self.animation.current_frame]
     }
 
-    pub fn handle_movement(&mut self, rl: &RaylibHandle) {
+    pub fn handle_movement(&mut self, rl: &RaylibHandle, world_map: &WorldMap) {
         let player_speed = 40.0 * rl.get_frame_time();
         if rl.is_key_down(KeyboardKey::KEY_W) {
             self.pos.y -= player_speed;
@@ -50,7 +65,25 @@ impl Player {
         if rl.is_key_pressed(KeyboardKey::KEY_F) {
             self.flashlight.active = !self.flashlight.active;
         }
+        
+        self.handle_collisions(world_map);
         self.animation.handle_animation(rl);
+    }
+
+    pub fn handle_collisions(&mut self, world_map: &WorldMap) {
+        for (y, wall_line) in world_map.walls.iter().enumerate() {
+            for (x, wall) in wall_line.iter().enumerate() {
+                if let Some(wall) = wall {
+                    if wall
+                        .get_collider()
+                        .with_pos(Vector2::new(x as f32 * 32.0, y as f32 * 32.0))
+                        .collides(&self.get_world_collider())
+                        .is_some()
+                    {
+                    }
+                }
+            }
+        }
     }
 
     pub fn handle_flashlight(
