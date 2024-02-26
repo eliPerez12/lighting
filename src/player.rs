@@ -50,40 +50,42 @@ impl Player {
 
     pub fn handle_movement(&mut self, rl: &RaylibHandle, world_map: &WorldMap) {
         let player_speed = 40.0 * rl.get_frame_time();
+        let mut new_pos = self.pos;
         if rl.is_key_down(KeyboardKey::KEY_W) {
-            self.pos.y -= player_speed;
+            new_pos.y -= player_speed;
         }
         if rl.is_key_down(KeyboardKey::KEY_S) {
-            self.pos.y += player_speed;
+            new_pos.y += player_speed;
         }
         if rl.is_key_down(KeyboardKey::KEY_A) {
-            self.pos.x -= player_speed;
+            new_pos.x -= player_speed;
         }
         if rl.is_key_down(KeyboardKey::KEY_D) {
-            self.pos.x += player_speed;
+            new_pos.x += player_speed;
         }
         if rl.is_key_pressed(KeyboardKey::KEY_F) {
             self.flashlight.active = !self.flashlight.active;
         }
-        
-        self.handle_collisions(world_map);
+
+        self.pos = self.handle_collisions(new_pos, world_map);
         self.animation.handle_animation(rl);
     }
 
-    pub fn handle_collisions(&mut self, world_map: &WorldMap) {
+    pub fn handle_collisions(&mut self, requested_pos: Vector2, world_map: &WorldMap) -> Vector2 {
+        let mut final_pos = requested_pos;
+        let old_pos = self.pos;
         for (y, wall_line) in world_map.walls.iter().enumerate() {
             for (x, wall) in wall_line.iter().enumerate() {
                 if let Some(wall) = wall {
-                    if wall
-                        .get_collider()
-                        .with_pos(Vector2::new(x as f32 * 32.0, y as f32 * 32.0))
-                        .collides(&self.get_world_collider())
-                        .is_some()
-                    {
+                    for rect in wall.get_collider().with_pos(Vector2::new(x as f32 * 32.0, y as f32 * 32.0)).rects.iter() {
+                        let player_rect = &self.get_world_collider().rects[0];
+                        if let Some(collision) = rect.get_collision_rec(player_rect) {
+                        }
                     }
                 }
             }
         }
+        final_pos
     }
 
     pub fn handle_flashlight(

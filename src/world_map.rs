@@ -23,7 +23,7 @@ impl WorldMap {
             reader.read_line(&mut String::new()).unwrap();
         }
         // Parsing background layer
-        for y in 0..map_height {
+        for _ in 0..map_height {
             let mut buffer = String::new();
             reader.read_line(&mut buffer).unwrap();
             let buffer = &buffer.replace("\r\n", "");
@@ -41,7 +41,6 @@ impl WorldMap {
                             panic!("Unable to parse map");
                         }
                     } else {
-                        dbg!(s, y, buffer);
                         panic!("Unable to parse map");
                     }
                 })
@@ -53,7 +52,7 @@ impl WorldMap {
             reader.read_line(&mut String::new()).unwrap();
         }
         // Parsing wall layer
-        for y in 0..map_height {
+        for _ in 0..map_height {
             let mut buffer = String::new();
             reader.read_line(&mut buffer).unwrap();
             let buffer = &buffer.replace("\r\n", "");
@@ -71,7 +70,6 @@ impl WorldMap {
                             None
                         }
                     } else {
-                        dbg!(s, y, buffer);
                         panic!("Unable to parse map");
                     }
                 })
@@ -79,7 +77,7 @@ impl WorldMap {
             walls.push(wall_map_line);
         }
         assert!(ground.len() == map_height as usize);
-        dbg!(&walls);
+        assert!(walls.len() == map_height as usize);
         WorldMap {
             ground,
             walls,

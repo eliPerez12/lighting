@@ -243,10 +243,10 @@ impl Renderer {
                         .rects
                     {
                         tg.draw_rectangle(
-                            camera.to_screen_x(rect.x - 0.25) as i32,
-                            camera.to_screen_y(rect.y - 0.25) as i32,
-                            ((rect.width + 0.25) * camera.zoom) as i32,
-                            ((rect.height + 0.25) * camera.zoom) as i32,
+                            camera.to_screen_x(rect.x) as i32,
+                            camera.to_screen_y(rect.y) as i32,
+                            (rect.width * camera.zoom) as i32,
+                            (rect.height * camera.zoom) as i32,
                             Color::BLUE,
                         )
                     }
@@ -263,8 +263,6 @@ impl Renderer {
                         .get_collider()
                         .with_pos(Vector2::new(x as f32 * 32.0, y as f32 * 32.0))
                         .collides(&player.get_world_collider()) {
-                        println!("COLLIDER");
-                        dbg!(collider);
                         tg.draw_rectangle_rec(camera.to_screen_rect(&collider), Color::WHITE);
                     }
                 }
