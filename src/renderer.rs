@@ -233,7 +233,7 @@ impl Renderer {
         camera: &Camera2D,
     ) {
         let mut tg = d.begin_texture_mode(thread, &mut self.target);
-        // Drawing debug tile grid
+        // Drawing debug colliders for walls
         for y in 0..map.height {
             for x in 0..map.height {
                 if let Some(wall) = &map.walls[y as usize][x as usize] {
@@ -248,13 +248,29 @@ impl Renderer {
                             (rect.width * camera.zoom) as i32,
                             (rect.height * camera.zoom) as i32,
                             Color::BLUE,
-                        )
+                        );
+                        // tg.draw_triangle_lines(
+                        //     Vector2::new(0.0, 0.0),
+                        //     Vector2::new(100.0, 0.0),
+                        //     Vector2::new(100.0, 100.0),
+                        //     Color::YELLOW,
+                        // );
+
+                        tg.draw_triangle(
+                            camera.to_screen(Vector2::new(rect.x, rect.y)),
+                            camera.to_screen(Vector2::new(rect.x + rect.width, rect.y)),
+                            camera.to_screen(Vector2::new(rect.x, rect.y + rect.height)),
+                            Color::GRAY
+                        );
                     }
                 }
             }
         }
 
-        tg.draw_rectangle_rec(camera.to_screen_rect(&player.get_world_collider().rects[0]), Color::RED);
+        tg.draw_rectangle_rec(
+            camera.to_screen_rect(&player.get_world_collider().rects[0]),
+            Color::RED,
+        );
 
         for (y, wall_line) in map.walls.iter().enumerate() {
             for (x, wall) in wall_line.iter().enumerate() {
@@ -262,7 +278,8 @@ impl Renderer {
                     if let Some(collider) = wall
                         .get_collider()
                         .with_pos(Vector2::new(x as f32 * 32.0, y as f32 * 32.0))
-                        .collides(&player.get_world_collider()) {
+                        .collides(&player.get_world_collider())
+                    {
                         tg.draw_rectangle_rec(camera.to_screen_rect(&collider), Color::WHITE);
                     }
                 }

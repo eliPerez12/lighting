@@ -36,8 +36,8 @@ fn main() {
         /* ---- Update ---- */
         let screen_size = Vector2::new(rl.get_screen_width() as f32, rl.get_screen_height() as f32);
 
-        player.handle_movement(&rl, &map);
-        player.handle_flashlight(&mut rl, &camera, &mut light_engine);
+        player.handle_controls(&rl, &map);
+        player.update_flashlight(&mut rl, &camera, &mut light_engine);
         camera.handle_player_controls(&mut rl);
         camera.track(player.pos, screen_size);
 
