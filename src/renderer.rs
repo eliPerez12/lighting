@@ -1,4 +1,4 @@
-use crate::{player::*, Bullet, DebugInfo, ImprovedCamera, WorldMap};
+use crate::{player::*, world::World, Bullet, DebugInfo, ImprovedCamera, WorldMap};
 use raylib::prelude::*;
 
 pub const TILE_SIZE: f32 = 32.0;
@@ -16,7 +16,7 @@ impl Renderer {
             shader: rl.load_shader_from_memory(
                 thread,
                 None,
-                Some(include_str!("../assets/shaders/lighting.fs")),
+                Some(include_str!("../shaders/lighting.fs")),
             ),
             target: rl
                 .load_render_texture(
@@ -61,19 +61,18 @@ impl Renderer {
         thread: &RaylibThread,
         player: &Player,
         camera: &Camera2D,
-        map: &WorldMap,
-        bullets: &[Bullet],
+        world: &World,
         debug_info: &DebugInfo,
     ) {
         // Draw world onto the renderers target
         self.clear_target(d, thread);
-        self.draw_floor(d, thread, map, camera);
-        self.draw_walls(d, thread, map, camera);
+        self.draw_floor(d, thread, &world.map, camera);
+        self.draw_walls(d, thread, &world.map, camera);
         self.draw_player(d, thread, camera, player);
-        self.draw_bullets(bullets, d, thread, camera);
+        self.draw_bullets(&world.bullets, d, thread, camera);
 
         if debug_info.debug {
-            self.draw_debug_colliders(thread, d, player, map, camera);
+            self.draw_debug_colliders(thread, d, player, &world.map, camera);
         }
 
         // Render target with shader
@@ -176,7 +175,7 @@ impl Renderer {
                 camera.to_screen(bullet.pos),
                 camera.to_screen(bullet.pos_history[2]),
                 2.0,
-                Color::new(30, 30, 30, 250),
+                Color::new(20, 20, 20, 255),
             );
 
             tg.draw_line_ex(

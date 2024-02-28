@@ -40,7 +40,7 @@ impl Light {
         Light::Radial {
             pos: Vector2::new(0.0, 0.0),
             color: Vector4::new(1.0, 1.0, 1.0, 1.0),
-            radius: 350.0,
+            radius: 150.0,
         }
     }
     pub fn default_ambient() -> Light {
@@ -213,13 +213,13 @@ impl LightEngine {
         shader.set_shader_value(self.shader_uniforms.screen_size, screen_size);
     }
     pub fn handle_spawning_light(&mut self, rl: &mut RaylibHandle, camera: &Camera2D) {
-        let light_radius = 350.0;
         let pos = camera.to_world(rl.get_mouse_position());
+        let light_radius = Light::default_radial().radius();
         if rl.is_key_pressed(KeyboardKey::KEY_ONE) {
             self.spawn_light(Light::Radial {
                 pos,
-                color: Color::new(255, 244, 229, 255).into(),
-                radius: light_radius,
+                color: Color::WHITE.into(),
+                radius: light_radius
             });
         }
         if rl.is_key_pressed(KeyboardKey::KEY_TWO) {

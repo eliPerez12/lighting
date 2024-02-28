@@ -32,8 +32,8 @@ impl Player {
             },
             light: light_engine.spawn_light(Light::Radial {
                 pos: Vector2::zero(),
-                color: Vector4::new(1.0, 1.0, 1.0, 0.3),
-                radius: 135.0,
+                color: Vector4::new(1.0, 1.0, 1.0, 0.35),
+                radius: 155.0,
             })
         }
     }

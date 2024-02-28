@@ -85,6 +85,26 @@ impl WorldMap {
             height: map_height,
         }
     }
+
+    pub fn collides_with_tile(&self, collider: &crate::Collider) -> Option<Rectangle> {
+
+        // Iterate over every wall, and every collider rect in each wall collider
+        for (y, wall_line) in self.walls.iter().enumerate() {
+            for (x, wall) in wall_line.iter().enumerate() {
+                if let Some(wall) = wall {
+                    let wall_collider = wall
+                        .get_collider()
+                        .with_pos(Vector2::new(x as f32 * 32.0, y as f32 * 32.0));
+                    
+                    // Checks if player will collide with wall in y axis
+                    if let Some(rect) = wall_collider.collides(collider) {
+                        return Some(rect);
+                    }
+                }
+            }
+        }
+        None
+    }
 }
 
 pub struct DayCycle {
@@ -93,7 +113,7 @@ pub struct DayCycle {
 }
 
 impl DayCycle {
-    pub const FULL_CYCLE_LENGTH: f32 = 800.0;
+    pub const FULL_CYCLE_LENGTH: f32 = 100.0;
     pub fn new(light_engine: &mut LightEngine) -> DayCycle {
         DayCycle {
             time: 0.25 * DayCycle::FULL_CYCLE_LENGTH,

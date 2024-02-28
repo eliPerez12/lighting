@@ -4,6 +4,7 @@ use player::*;
 use raylib::prelude::*;
 use renderer::*;
 use tile::*;
+use world::World;
 use world_map::*;
 
 mod debug;
@@ -12,6 +13,7 @@ mod player;
 mod renderer;
 mod tile;
 mod world_map;
+mod world;
 
 pub struct Bullet {
     pub pos_history: [Vector2; 3],
@@ -45,6 +47,18 @@ impl Bullet {
 
         self.pos += self.vel * rl.get_frame_time();
     }
+
+    pub fn get_collider(&self) -> Collider {
+        Collider {
+            rects: vec![Rectangle {
+                x: self.pos.x,
+                y: self.pos.y,
+                width: 0.5, 
+                height: 0.5,
+            }],
+            circles: vec![],
+        }
+    }
 }
 
 fn main() {
@@ -58,58 +72,56 @@ fn main() {
         .build();
     let mut renderer = Renderer::new(&mut rl, &thread);
     let mut light_engine = LightEngine::new(&mut renderer.shader);
-    let mut day_cycle = DayCycle::new(&mut light_engine);
     let mut camera = Camera2D::default();
     let mut player = Player::new(&mut rl, &thread, &mut light_engine);
     let mut debug_info = DebugInfo::new();
-    let map = WorldMap::load_from_file("assets/maps/map0.tmx", 30, 20);
     camera.zoom = 3.5;
     player.pos = Vector2::new(64.0, 64.0);
 
-    let mut bullets = vec![];
+    let mut world = World::new(&mut light_engine);
 
     while !rl.window_should_close() {
         /* ---- Update ---- */
         let screen_size = Vector2::new(rl.get_screen_width() as f32, rl.get_screen_height() as f32);
 
-        player.handle_controls(&rl, &map);
+        player.handle_controls(&rl, &world.map);
         player.update_flashlight(&mut rl, &camera, &mut light_engine);
         light_engine
             .get_mut_light(&player.light)
             .set_pos(player.pos);
 
-        if rl.is_mouse_button_pressed(MouseButton::MOUSE_BUTTON_LEFT) {
+        if rl.is_key_pressed(KeyboardKey::KEY_G) {
             let player_screen_pos = camera.to_screen(player.pos);
             let mouse_pos = rl.get_mouse_position();
             let angle_to_mouse =
                 (mouse_pos.y - player_screen_pos.y).atan2(mouse_pos.x - player_screen_pos.x);
-            let bullet_speed = 900.0;
+            let bullet_speed = 1000.0;
             let bullet_vel = Vector2::new(
                 angle_to_mouse.cos(),
                 angle_to_mouse.sin(),
             );
 
-            bullets.push(Bullet::new(
+            world.bullets.push(Bullet::new(
                 player.pos + bullet_vel * 15.0,
                 bullet_vel * bullet_speed,
             ));
         }
 
-        for bullet in bullets.iter_mut() {
+        for bullet in world.bullets.iter_mut() {
             bullet.update(&rl);
         }
 
-        bullets.retain(|bullet| bullet.vel != Vector2::zero());
-        dbg!(bullets.len());
+        world.bullets.retain(|bullet| bullet.vel != Vector2::zero());
+        world.bullets.retain(|bullet| world.map.collides_with_tile(&bullet.get_collider()).is_none());
 
         camera.handle_player_controls(&mut rl);
         camera.pan_to(&rl, player.pos, screen_size);
 
-        day_cycle.update(&mut rl, &mut light_engine);
+        world.day_cycle.update(&mut rl, &mut light_engine);
         debug_info.update(&mut rl);
         debug_info.add(format!("FPS: {}", rl.get_fps()));
         debug_info.add(format!("Frame time: {}", rl.get_frame_time()));
-        debug_info.add(day_cycle.get_debug_info());
+        debug_info.add(world.day_cycle.get_debug_info());
         light_engine.handle_spawning_light(&mut rl, &camera);
 
         renderer.update_target(&mut rl, &thread, screen_size);
@@ -124,8 +136,7 @@ fn main() {
             &thread,
             &player,
             &camera,
-            &map,
-            &bullets,
+            &world,
             &debug_info,
         );
 
