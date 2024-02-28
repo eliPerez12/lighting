@@ -4,6 +4,7 @@ use raylib::prelude::*;
 pub struct Player {
     pub pos: Vector2,
     pub vel: Vector2,
+    pub light: LightHandle,
     animation: PlayerAnimation,
     flashlight: FlashLight,
 }
@@ -29,6 +30,11 @@ impl Player {
                 light_handle: light_engine.spawn_light(Light::default_cone()),
                 active: true,
             },
+            light: light_engine.spawn_light(Light::Radial {
+                pos: Vector2::zero(),
+                color: Vector4::new(1.0, 1.0, 1.0, 0.3),
+                radius: 135.0,
+            })
         }
     }
 

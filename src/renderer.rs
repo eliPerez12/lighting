@@ -1,4 +1,4 @@
-use crate::{player::*, DebugInfo, ImprovedCamera, WorldMap};
+use crate::{player::*, Bullet, DebugInfo, ImprovedCamera, WorldMap};
 use raylib::prelude::*;
 
 pub const TILE_SIZE: f32 = 32.0;
@@ -62,6 +62,7 @@ impl Renderer {
         player: &Player,
         camera: &Camera2D,
         map: &WorldMap,
+        bullets: &[Bullet],
         debug_info: &DebugInfo,
     ) {
         // Draw world onto the renderers target
@@ -69,11 +70,12 @@ impl Renderer {
         self.draw_floor(d, thread, map, camera);
         self.draw_walls(d, thread, map, camera);
         self.draw_player(d, thread, camera, player);
+        self.draw_bullets(bullets, d, thread, camera);
 
         if debug_info.debug {
-            // self.draw_debug_grid(thread, d, map, camera);
             self.draw_debug_colliders(thread, d, player, map, camera);
         }
+
         // Render target with shader
         let mut sh = d.begin_shader_mode(&self.shader);
         sh.draw_texture(&self.target, 0, 0, Color::WHITE);
@@ -158,6 +160,45 @@ impl Renderer {
         }
     }
 
+    pub fn draw_bullets(
+        &mut self,
+        bullets: &[Bullet],
+        d: &mut RaylibDrawHandle,
+        thread: &RaylibThread,
+        camera: &Camera2D,
+    ) {
+        let mut tg = d.begin_texture_mode(thread, &mut self.target);
+        for bullet in bullets.iter() {
+
+            
+            // Long transparent trail
+            tg.draw_line_ex(
+                camera.to_screen(bullet.pos),
+                camera.to_screen(bullet.pos_history[2]),
+                2.0,
+                Color::new(30, 30, 30, 250),
+            );
+
+            tg.draw_line_ex(
+                camera.to_screen(bullet.pos),
+                camera.to_screen(bullet.pos_history[1]),
+                2.0,
+                Color::new(120, 120, 120, 255),
+            );
+
+            // Bullet
+            tg.draw_line_ex(
+                camera.to_screen(bullet.pos),
+                camera.to_screen(bullet.pos_history[0]),
+                2.0,
+                Color::WHITE,
+            );
+            
+
+
+        }
+    }
+
     // Draws the walls
     fn draw_walls(
         &mut self,
@@ -179,7 +220,7 @@ impl Renderer {
                         texture,
                         Rectangle::new(
                             tile_x as f32 * TILE_SIZE,
-                            tile_y as f32 * TILE_SIZE ,
+                            tile_y as f32 * TILE_SIZE,
                             TILE_SIZE,
                             TILE_SIZE,
                         ),

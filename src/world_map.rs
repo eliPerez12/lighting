@@ -234,7 +234,7 @@ impl ImprovedCamera for Camera2D {
     }
 
     fn pan_to(&mut self, rl: &RaylibHandle, target_pos: Vector2, screen_size: Vector2) {
-        let camera_pan_time = 10.0;
+        let camera_pan_time = 9.0;
         let old_pos = self.get_world_pos(self.offset, screen_size);
         let pos = old_pos + (target_pos - old_pos) / (camera_pan_time / rl.get_frame_time() / 60.0);
         self.offset = self.get_screen_offset(pos, screen_size);
