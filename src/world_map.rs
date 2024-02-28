@@ -179,8 +179,9 @@ pub trait ImprovedCamera {
     fn to_world(&self, screen_pos: Vector2) -> Vector2;
     fn handle_player_controls(&mut self, rl: &mut RaylibHandle);
     fn track(&mut self, pos: Vector2, screen_size: Vector2);
-    fn pan_to(&mut self, pos: Vector2, screen_size: Vector2);
-    fn get_world_pos(&self, screen_size: Vector2) -> Vector2;
+    fn pan_to(&mut self, rl: &RaylibHandle, pos: Vector2, screen_size: Vector2);
+    fn get_world_pos(&self, offset: Vector2, screen_size: Vector2) -> Vector2;
+    fn get_screen_offset(&self, world_pos: Vector2, screen_size: Vector2) -> Vector2;
 }
 
 impl ImprovedCamera for Camera2D {
@@ -210,31 +211,32 @@ impl ImprovedCamera for Camera2D {
     }
 
     fn handle_player_controls(&mut self, rl: &mut RaylibHandle) {
-        let mut zoom = self.zoom;
-        zoom *= 1.0 + rl.get_mouse_wheel_move() / 40.0;
+        let screen_size = Vector2::new(rl.get_screen_width() as f32, rl.get_screen_height() as f32);
+        let mouse_wheel_move = rl.get_mouse_wheel_move();
 
-        if rl.is_key_down(KeyboardKey::KEY_MINUS) {
-            zoom /= 1.04;
+        if mouse_wheel_move != 0.0 {
+            let old_world_pos = self.get_world_pos(self.offset, screen_size);
+            self.zoom *= 1.0 + rl.get_mouse_wheel_move() / 40.0;
+            self.track(old_world_pos, screen_size);
         }
-        if rl.is_key_down(KeyboardKey::KEY_EQUAL) {
-            zoom *= 1.04;
-        }
-        if rl.is_key_pressed(KeyboardKey::KEY_BACKSPACE) {
-            zoom = 1.0;
-        }
-        self.zoom = zoom;
     }
 
-    fn track(&mut self, world_pos: Vector2, screen_size: Vector2) {
-        self.offset = -world_pos + screen_size / 2.0 / self.zoom;
+    fn track(&mut self, target_world_pos: Vector2, screen_size: Vector2) {
+        self.offset = self.get_screen_offset(target_world_pos, screen_size);
     }
 
-    fn get_world_pos(&self, screen_size: Vector2) -> Vector2 {
-        -self.offset + screen_size / (2.0 * self.zoom)
+    fn get_world_pos(&self, offset: Vector2, screen_size: Vector2) -> Vector2 {
+        -offset + screen_size / (2.0 * self.zoom)
     }
 
-    fn pan_to(&mut self, world_pos: Vector2, screen_size: Vector2) {
-        let dist = world_pos - self.get_world_pos(screen_size);
-        self.track(self.get_world_pos(screen_size) + dist / 10.0, screen_size);
+    fn get_screen_offset(&self, world_pos: Vector2, screen_size: Vector2) -> Vector2 {
+        -world_pos + screen_size / 2.0 / self.zoom
+    }
+
+    fn pan_to(&mut self, rl: &RaylibHandle, target_pos: Vector2, screen_size: Vector2) {
+        let camera_pan_time = 10.0;
+        let old_pos = self.get_world_pos(self.offset, screen_size);
+        let pos = old_pos + (target_pos - old_pos) / (camera_pan_time / rl.get_frame_time() / 60.0);
+        self.offset = self.get_screen_offset(pos, screen_size);
     }
 }

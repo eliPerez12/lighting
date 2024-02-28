@@ -57,6 +57,15 @@ impl Light {
             angle: PI as f32 / 3.0,
         }
     }
+
+    pub fn set_pos(&mut self, world_pos: Vector2) {
+        match self {
+            Light::Radial { pos, .. } => *pos = world_pos,
+            Light::Cone { pos, .. } => *pos = world_pos,
+            _ => (),
+        }
+    }
+
     pub fn color(&self) -> Vector4 {
         match self {
             Light::Radial { color, .. } => *color,

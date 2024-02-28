@@ -179,15 +179,15 @@ impl Renderer {
                         texture,
                         Rectangle::new(
                             tile_x as f32 * TILE_SIZE,
-                            tile_y as f32 * TILE_SIZE,
+                            tile_y as f32 * TILE_SIZE ,
                             TILE_SIZE,
                             TILE_SIZE,
                         ),
                         Rectangle::new(
                             camera.to_screen_x(x as f32 * TILE_SIZE + rot_offset.x),
                             camera.to_screen_y(y as f32 * TILE_SIZE + rot_offset.y),
-                            TILE_SIZE * camera.zoom + 0.001 * TILE_SIZE,
-                            TILE_SIZE * camera.zoom + 0.001 * TILE_SIZE,
+                            TILE_SIZE * camera.zoom + 0.01 * TILE_SIZE,
+                            TILE_SIZE * camera.zoom + 0.01 * TILE_SIZE,
                         ),
                         Vector2::zero(),
                         tile.rotation.get_angle(),
@@ -249,18 +249,12 @@ impl Renderer {
                             (rect.height * camera.zoom) as i32,
                             Color::BLUE,
                         );
-                        // tg.draw_triangle_lines(
-                        //     Vector2::new(0.0, 0.0),
-                        //     Vector2::new(100.0, 0.0),
-                        //     Vector2::new(100.0, 100.0),
-                        //     Color::YELLOW,
-                        // );
 
                         tg.draw_triangle(
                             camera.to_screen(Vector2::new(rect.x, rect.y)),
                             camera.to_screen(Vector2::new(rect.x + rect.width, rect.y)),
                             camera.to_screen(Vector2::new(rect.x, rect.y + rect.height)),
-                            Color::GRAY
+                            Color::GRAY,
                         );
                     }
                 }

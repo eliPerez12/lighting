@@ -31,6 +31,11 @@ fn main() {
     let map = WorldMap::load_from_file("assets/maps/map0.tmx", 30, 20);
     camera.zoom = 3.5;
     player.pos = Vector2::new(64.0, 64.0);
+    let player_light = light_engine.spawn_light(Light::Radial {
+        pos: player.pos,
+        color: Vector4::new(1.0, 1.0, 1.0, 0.3),
+        radius: 135.0,
+    });
 
     while !rl.window_should_close() {
         /* ---- Update ---- */
@@ -38,8 +43,12 @@ fn main() {
 
         player.handle_controls(&rl, &map);
         player.update_flashlight(&mut rl, &camera, &mut light_engine);
+        light_engine
+            .get_mut_light(&player_light)
+            .set_pos(player.pos);
+
         camera.handle_player_controls(&mut rl);
-        camera.track(player.pos, screen_size);
+        camera.pan_to(&rl, player.pos, screen_size);
 
         day_cycle.update(&mut rl, &mut light_engine);
         debug_info.update(&mut rl);

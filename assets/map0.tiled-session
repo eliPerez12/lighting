@@ -5,8 +5,8 @@
     },
     "activeFile": "maps/map0.tmx",
     "expandedProjectPaths": [
-        ".",
         "maps",
+        ".",
         "tiled"
     ],
     "file.lastUsedOpenFilter": "All Files (*)",
@@ -16,11 +16,11 @@
             "scaleInDock": 1
         },
         "maps/map0.tmx": {
-            "scale": 1.5,
+            "scale": 3,
             "selectedLayer": 1,
             "viewCenter": {
-                "x": 282.3333333333333,
-                "y": -30.333333333333343
+                "x": 128.5,
+                "y": 110.16666666666669
             }
         },
         "tiled/background_tile_sheet.tsx": {

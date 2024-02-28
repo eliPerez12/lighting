@@ -7,10 +7,18 @@ pub struct Wall {
     pub rotation: TileRotation,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
+pub struct Circle {
+    pub x: f32,
+    pub y: f32,
+    pub radius: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum WallVarient {
     Staight,
     Elbow,
+    TinyElbow = 4,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -36,6 +44,7 @@ impl WallVarient {
             // Remove first byte and 64 bit
             0 => Some(WallVarient::Staight),
             1 => Some(WallVarient::Elbow),
+            4 => Some(WallVarient::TinyElbow),
             _ => None,
         }
     }
@@ -53,6 +62,15 @@ impl Wall {
                     self.rotation.get_collider_rect(),
                     self.rotation.rotate().get_collider_rect(),
                 ],
+                circles: vec![],
+            },
+            WallVarient::TinyElbow => Collider {
+                rects: vec![match self.rotation {
+                    TileRotation::None => Rectangle::new(0.0, 22.0, 10.0, 10.0),
+                    TileRotation::One => Rectangle::new(22.0, 22.0, 10.0, 10.0),
+                    TileRotation::Two => Rectangle::new(0.0, 0.0, 10.0, 10.0),
+                    TileRotation::Three => Rectangle::new(22.0, 0.0, 10.0, 10.0),
+                }],
                 circles: vec![],
             },
         }
@@ -116,15 +134,6 @@ impl Collider {
         }
     }
 }
-
-#[derive(Debug)]
-pub struct Circle {
-    pub x: f32,
-    pub y: f32,
-    pub radius: f32,
-}
-
-impl Circle {}
 
 impl TileRotation {
     pub fn from_raw_u32(tile: u32) -> TileRotation {

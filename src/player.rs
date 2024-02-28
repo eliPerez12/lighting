@@ -35,8 +35,8 @@ impl Player {
     pub fn get_world_collider(&self) -> Collider {
         Collider {
             rects: vec![Rectangle {
-                x: self.pos.x - Self::COLLIDER_SIZE/2.0,
-                y: self.pos.y - Self::COLLIDER_SIZE/2.0,
+                x: self.pos.x - Self::COLLIDER_SIZE / 2.0,
+                y: self.pos.y - Self::COLLIDER_SIZE / 2.0,
                 width: Self::COLLIDER_SIZE,
                 height: Self::COLLIDER_SIZE,
             }],
@@ -56,13 +56,11 @@ impl Player {
         self.animation.handle_animation(rl);
     }
 
-
     fn handle_flashlight_controls(&mut self, rl: &RaylibHandle) {
         // Player flashlight control
         if rl.is_key_pressed(KeyboardKey::KEY_F) {
             self.flashlight.active = !self.flashlight.active;
         }
-
     }
 
     fn apply_velocity(&mut self) {
@@ -71,8 +69,13 @@ impl Player {
 
     fn handle_movement_controls(&mut self, rl: &RaylibHandle) {
         // Constants that are ajusted with frame time to be consistant across fps
-        let player_speed = 40.0 * rl.get_frame_time();
-        let player_acc = 8.0 * rl.get_frame_time();
+        let player_speed = match rl.is_key_down(KeyboardKey::KEY_LEFT_SHIFT)
+            | rl.is_key_down(KeyboardKey::KEY_RIGHT_SHIFT)
+        {
+            true => 50.0 * rl.get_frame_time(),
+            false => 35.0 * rl.get_frame_time(),
+        };
+        let player_acc = 7.0 * rl.get_frame_time();
         let player_deacc = 4.0 * rl.get_frame_time();
 
         // Player y controls
@@ -139,9 +142,12 @@ impl Player {
                             // Move player to edge of wall and set vel y to 0
                             self.vel.y = 0.0;
                             if self.pos.y < collider_rect.y + collider_rect.height / 2.0 {
-                                self.pos.y = collider_rect.y - player_collider.rects[0].height/2.0;
+                                self.pos.y =
+                                    collider_rect.y - player_collider.rects[0].height / 2.0;
                             } else {
-                                self.pos.y = collider_rect.y + collider_rect.height + player_collider.rects[0].height/2.0;
+                                self.pos.y = collider_rect.y
+                                    + collider_rect.height
+                                    + player_collider.rects[0].height / 2.0;
                             }
                         }
 
@@ -154,9 +160,11 @@ impl Player {
                             // Move player to edge of wall and set vel x to 0
                             self.vel.x = 0.0;
                             if self.pos.x < collider_rect.x + collider_rect.width / 2.0 {
-                                self.pos.x = collider_rect.x - player_collider.rects[0].width/2.0;
+                                self.pos.x = collider_rect.x - player_collider.rects[0].width / 2.0;
                             } else {
-                                self.pos.x = collider_rect.x + collider_rect.width + player_collider.rects[0].width/2.0;
+                                self.pos.x = collider_rect.x
+                                    + collider_rect.width
+                                    + player_collider.rects[0].width / 2.0;
                             }
                         }
                     }

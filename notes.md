@@ -7,7 +7,6 @@ Zombie survival like COD zombies
 
 
 # SHORT TERM
-Add colliders
 Add camera drag to player
 Add an actual map / add more tiles
 Add props/objects
