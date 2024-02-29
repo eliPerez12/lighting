@@ -10,7 +10,7 @@ add more camera.to_screen()
 Add shadow renderer for tiles
 Fix daycycle sunrise and sunset to closer to real life
 Add items/hotbar
-Add bullets 
+Add complex bullet behavior (breaking apart, bouncing)
 
 # LONG TERM
 Add multiplayer

@@ -1,4 +1,4 @@
-use crate::{player::*, world::World, Bullet, DebugInfo, ImprovedCamera, WorldMap};
+use crate::{player::*, world::*, DebugInfo, ImprovedCamera, WorldMap};
 use raylib::prelude::*;
 
 pub const TILE_SIZE: f32 = 32.0;
@@ -168,8 +168,6 @@ impl Renderer {
     ) {
         let mut tg = d.begin_texture_mode(thread, &mut self.target);
         for bullet in bullets.iter() {
-
-            
             // Long transparent trail
             tg.draw_line_ex(
                 camera.to_screen(bullet.pos),
@@ -192,9 +190,6 @@ impl Renderer {
                 2.0,
                 Color::WHITE,
             );
-            
-
-
         }
     }
 
@@ -314,7 +309,10 @@ impl Renderer {
                         .with_pos(Vector2::new(x as f32 * 32.0, y as f32 * 32.0))
                         .collides(&player.get_world_collider())
                     {
-                        tg.draw_rectangle_rec(camera.to_screen_rect(&collider), Color::WHITE);
+                        tg.draw_rectangle_rec(
+                            camera.to_screen_rect(&collider),
+                            Color::WHITE,
+                        );
                     }
                 }
             }

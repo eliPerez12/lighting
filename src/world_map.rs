@@ -1,5 +1,6 @@
 use crate::{
-    GroundVarient, Light, LightEngine, LightHandle, Tile, TileRotation, Wall, WallVarient,
+    GroundVarient, Light, LightEngine, LightHandle, Tile, TileRotation, Wall,
+    WallVarient,
 };
 use raylib::prelude::*;
 
@@ -86,8 +87,7 @@ impl WorldMap {
         }
     }
 
-    pub fn collides_with_tile(&self, collider: &crate::Collider) -> Option<Rectangle> {
-
+    pub fn collides_with_wall(&self, collider: &crate::Collider) -> Option<Rectangle> {
         // Iterate over every wall, and every collider rect in each wall collider
         for (y, wall_line) in self.walls.iter().enumerate() {
             for (x, wall) in wall_line.iter().enumerate() {
@@ -95,10 +95,8 @@ impl WorldMap {
                     let wall_collider = wall
                         .get_collider()
                         .with_pos(Vector2::new(x as f32 * 32.0, y as f32 * 32.0));
-                    
-                    // Checks if player will collide with wall in y axis
-                    if let Some(rect) = wall_collider.collides(collider) {
-                        return Some(rect);
+                    if let Some(collision) = wall_collider.collides(collider) {
+                        return Some(collision);
                     }
                 }
             }

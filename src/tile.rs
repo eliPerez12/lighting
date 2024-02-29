@@ -101,8 +101,8 @@ impl Collider {
         for self_rect in self.rects.iter() {
             for other_rect in other_collider.rects.iter() {
                 let collision = self_rect.get_collision_rec(other_rect);
-                if collision.is_some() {
-                    return collision;
+                if let Some(collision) = collision {
+                    return Some(collision);
                 }
             }
         }

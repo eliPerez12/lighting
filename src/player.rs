@@ -34,7 +34,7 @@ impl Player {
                 pos: Vector2::zero(),
                 color: Vector4::new(1.0, 1.0, 1.0, 0.35),
                 radius: 155.0,
-            })
+            }),
         }
     }
 

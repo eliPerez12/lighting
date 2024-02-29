@@ -219,7 +219,7 @@ impl LightEngine {
             self.spawn_light(Light::Radial {
                 pos,
                 color: Color::WHITE.into(),
-                radius: light_radius
+                radius: light_radius,
             });
         }
         if rl.is_key_pressed(KeyboardKey::KEY_TWO) {
