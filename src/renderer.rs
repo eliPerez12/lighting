@@ -1,4 +1,4 @@
-use crate::{player::*, world::*, DebugInfo, ImprovedCamera, WorldMap};
+use crate::{player::*, world::*, DebugInfo, ImprovedCamera, Line, WorldMap};
 use raylib::prelude::*;
 
 pub const TILE_SIZE: f32 = 32.0;
@@ -72,7 +72,7 @@ impl Renderer {
         self.draw_bullets(&world.bullets, d, thread, camera);
 
         if debug_info.debug {
-            self.draw_debug_colliders(thread, d, player, &world.map, camera);
+            self.draw_debug_colliders(thread, d, player, &world, camera);
         }
 
         // Render target with shader
@@ -264,14 +264,14 @@ impl Renderer {
         thread: &RaylibThread,
         d: &mut RaylibDrawHandle,
         player: &Player,
-        map: &WorldMap,
+        world: &World,
         camera: &Camera2D,
     ) {
         let mut tg = d.begin_texture_mode(thread, &mut self.target);
         // Drawing debug colliders for walls
-        for y in 0..map.height {
-            for x in 0..map.height {
-                if let Some(wall) = &map.walls[y as usize][x as usize] {
+        for y in 0..world.map.height {
+            for x in 0..world.map.height {
+                if let Some(wall) = &world.map.walls[y as usize][x as usize] {
                     for rect in &wall
                         .get_collider()
                         .with_pos(Vector2::new(x as f32 * TILE_SIZE, y as f32 * TILE_SIZE))
@@ -291,6 +291,37 @@ impl Renderer {
                             camera.to_screen(Vector2::new(rect.x, rect.y + rect.height)),
                             Color::GRAY,
                         );
+
+                        for line in Line::from_rect(rect) {
+                            tg.draw_line_ex(
+                                camera.to_screen(line.start),
+                                camera.to_screen(line.end),
+                                3.0,
+                                Color::GREEN
+                            );
+                            tg.draw_line_ex(
+                                camera.to_screen(line.start),
+                                camera.to_screen(line.end),
+                                3.0,
+                                Color::GREEN
+                            );
+                            for bullet in world.bullets.iter() {
+                                let bullet_x_line = Line {
+                                    start: bullet.pos_history[0],
+                                    end: bullet.pos_history[0] + bullet.vel * Vector2::new(1.0, 0.0) * tg.get_frame_time(),
+                                };
+                                let bullet_y_line = Line {
+                                    start: bullet.pos_history[0],
+                                    end: bullet.pos_history[0] + bullet.vel * Vector2::new(0.0, 1.0) * tg.get_frame_time(),
+                                };
+                                if let Some(intersection) = line.intersection(&bullet_x_line) {
+                                    tg.draw_circle_v(camera.to_screen(intersection), 10.0, Color::RED);
+                                }
+                                if let Some(intersection) = line.intersection(&bullet_y_line) {
+                                    tg.draw_circle_v(camera.to_screen(intersection), 10.0, Color::YELLOW);
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -301,7 +332,7 @@ impl Renderer {
             Color::RED,
         );
 
-        for (y, wall_line) in map.walls.iter().enumerate() {
+        for (y, wall_line) in world.map.walls.iter().enumerate() {
             for (x, wall) in wall_line.iter().enumerate() {
                 if let Some(wall) = wall {
                     if let Some(collider) = wall
@@ -309,10 +340,7 @@ impl Renderer {
                         .with_pos(Vector2::new(x as f32 * 32.0, y as f32 * 32.0))
                         .collides(&player.get_world_collider())
                     {
-                        tg.draw_rectangle_rec(
-                            camera.to_screen_rect(&collider),
-                            Color::WHITE,
-                        );
+                        tg.draw_rectangle_rec(camera.to_screen_rect(&collider), Color::WHITE);
                     }
                 }
             }

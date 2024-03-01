@@ -1,4 +1,4 @@
-use crate::{Collider, DayCycle, ImprovedCamera, LightEngine, Player, WorldMap};
+use crate::{Collider, DayCycle, ImprovedCamera, LightEngine, Line, Player, WorldMap, TILE_SIZE};
 use raylib::prelude::*;
 
 pub struct Bullet {
@@ -30,9 +30,55 @@ impl Bullet {
         if self.vel.length() <= 30.0 {
             self.vel = Vector2::zero();
         }
-
+        self.handle_collisions(rl, world_map);
         self.pos += self.vel * rl.get_frame_time();
+    }
 
+    pub fn handle_collisions(&mut self, rl: &RaylibHandle, world_map: &WorldMap) {
+        let bullet_x_line = Line {
+            start: self.pos,
+            end: self.pos + self.vel * Vector2::new(1.0, 0.0) * rl.get_frame_time(),
+        };
+        let bullet_y_line = Line {
+            start: self.pos,
+            end: self.pos + self.vel * Vector2::new(0.0, 1.0) * rl.get_frame_time(),
+        };
+        let mut normals = vec![];
+        for (y, line) in world_map.walls.iter().enumerate() {
+            for (x, wall) in line.iter().enumerate() {
+                if let Some(wall) = wall {
+                    for rect in wall.get_collider().with_pos(Vector2::new(x as f32 * TILE_SIZE, y as f32 * TILE_SIZE)).rects {
+                        let lines = Line::from_rect(&rect);
+                        for line in lines {
+                            // Check for x collision
+                            if let Some(intersection) = line.intersection(&bullet_x_line) {
+                                normals.push((intersection, Vector2::new(-0.2, 0.2)));
+                            }
+                            // Check for y collision
+                            if let Some(intersection) = line.intersection(&bullet_y_line) {
+                                normals.push((intersection, Vector2::new(0.2, -0.2)));
+                            }
+                        }
+                    }
+                }   
+            }
+        }
+        let mut closest = 0usize;
+        for (i, normal) in normals.iter().enumerate() {
+            let dist = normal.0.length();
+            if let Some(best_normal) = normals.get(closest) {
+                if best_normal.0.length() > dist {
+                    closest = i;
+                    
+                }
+            }
+        }
+
+        if let Some(normal) = normals.get(closest) {
+            self.vel *= normal.1;
+            self.pos = normal.0 + self.vel * 0.001;
+            self.pos_history = [self.pos;3];
+        }
     }
 
     pub fn get_collider(&self) -> Collider {
@@ -64,19 +110,17 @@ impl World {
     }
 
     pub fn spawn_bullet(&mut self, rl: &RaylibHandle, camera: &Camera2D, player: &Player) {
-        if rl.is_key_pressed(KeyboardKey::KEY_G) {
-            let player_screen_pos = camera.to_screen(player.pos);
-            let mouse_pos = rl.get_mouse_position();
-            let angle_to_mouse =
-                (mouse_pos.y - player_screen_pos.y).atan2(mouse_pos.x - player_screen_pos.x);
-            let bullet_speed = 1000.0;
-            let bullet_vel = Vector2::new(angle_to_mouse.cos(), angle_to_mouse.sin());
+        let player_screen_pos = camera.to_screen(player.pos);
+        let mouse_pos = rl.get_mouse_position();
+        let angle_to_mouse =
+            (mouse_pos.y - player_screen_pos.y).atan2(mouse_pos.x - player_screen_pos.x);
+        let bullet_speed = 1000.0;
+        let bullet_vel = Vector2::new(angle_to_mouse.cos(), angle_to_mouse.sin());
 
-            self.bullets.push(Bullet::new(
-                player.pos + bullet_vel * 15.0,
-                bullet_vel * bullet_speed,
-            ));
-        }
+        self.bullets.push(Bullet::new(
+            player.pos + bullet_vel * 15.0,
+            bullet_vel * bullet_speed,
+        ));
     }
 
     pub fn update_bullets(&mut self, rl: &RaylibHandle) {

@@ -1,4 +1,4 @@
-use crate::TILE_SIZE;
+use crate::{Line, TILE_SIZE};
 use raylib::prelude::*;
 
 #[derive(Debug)]

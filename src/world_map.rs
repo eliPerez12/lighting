@@ -1,6 +1,5 @@
 use crate::{
-    GroundVarient, Light, LightEngine, LightHandle, Tile, TileRotation, Wall,
-    WallVarient,
+    GroundVarient, Light, LightEngine, LightHandle, Tile, TileRotation, Wall, WallVarient,
 };
 use raylib::prelude::*;
 
