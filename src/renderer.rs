@@ -72,7 +72,7 @@ impl Renderer {
         self.draw_bullets(&world.bullets, d, thread, camera);
 
         if debug_info.debug {
-            self.draw_debug_colliders(thread, d, player, &world, camera);
+            self.draw_debug_colliders(thread, d, player, world, camera);
         }
 
         // Render target with shader
@@ -170,14 +170,14 @@ impl Renderer {
         for bullet in bullets.iter() {
             // Long transparent trail
             tg.draw_line_ex(
-                camera.to_screen(bullet.pos),
+                camera.to_screen(bullet.pos_history[1]),
                 camera.to_screen(bullet.pos_history[2]),
                 2.0,
                 Color::new(20, 20, 20, 255),
             );
 
             tg.draw_line_ex(
-                camera.to_screen(bullet.pos),
+                camera.to_screen(bullet.pos_history[0]),
                 camera.to_screen(bullet.pos_history[1]),
                 2.0,
                 Color::new(120, 120, 120, 255),
@@ -306,19 +306,13 @@ impl Renderer {
                                 Color::GREEN
                             );
                             for bullet in world.bullets.iter() {
-                                let bullet_x_line = Line {
-                                    start: bullet.pos_history[0],
-                                    end: bullet.pos_history[0] + bullet.vel * Vector2::new(1.0, 0.0) * tg.get_frame_time(),
-                                };
-                                let bullet_y_line = Line {
-                                    start: bullet.pos_history[0],
-                                    end: bullet.pos_history[0] + bullet.vel * Vector2::new(0.0, 1.0) * tg.get_frame_time(),
-                                };
-                                if let Some(intersection) = line.intersection(&bullet_x_line) {
-                                    tg.draw_circle_v(camera.to_screen(intersection), 10.0, Color::RED);
-                                }
-                                if let Some(intersection) = line.intersection(&bullet_y_line) {
-                                    tg.draw_circle_v(camera.to_screen(intersection), 10.0, Color::YELLOW);
+                                for dbg_line in bullet.dbg_lines.iter() {
+                                    tg.draw_line_ex(
+                                        camera.to_screen(dbg_line.start),
+                                        camera.to_screen(dbg_line.end),
+                                        5.0,
+                                        Color::GREEN
+                                    )
                                 }
                             }
                         }

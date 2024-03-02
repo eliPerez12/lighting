@@ -7,6 +7,9 @@ edition = "2021"
 
 [dependencies]
 rand = "*"
+geo = "0.4"
+num-traits = "0.1"
+line_intersection = "*"
 
 [dependencies.raylib]
 version = "4.5.0"

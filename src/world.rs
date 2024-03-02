@@ -5,6 +5,8 @@ pub struct Bullet {
     pub pos_history: [Vector2; 3],
     pub pos: Vector2,
     pub vel: Vector2,
+    pub collided: bool,
+    pub dbg_lines: Vec<Line>,
 }
 
 impl Bullet {
@@ -12,7 +14,9 @@ impl Bullet {
         Bullet {
             pos,
             vel,
+            collided: false,
             pos_history: [pos; 3],
+            dbg_lines: vec![],
         }
     }
 
@@ -23,15 +27,18 @@ impl Bullet {
     }
 
     pub fn update(&mut self, rl: &RaylibHandle, world_map: &WorldMap) {
+        self.collided = false;
         self.update_history();
-        let drag = 35.0;
+        let drag = 25.0;
 
-        self.vel -= self.vel / drag * rl.get_frame_time() * 60.0;
+        self.vel -= self.vel.normalized() * drag * rl.get_frame_time() * 60.0;
         if self.vel.length() <= 30.0 {
             self.vel = Vector2::zero();
         }
         self.handle_collisions(rl, world_map);
-        self.pos += self.vel * rl.get_frame_time();
+        if !self.collided {
+            self.pos += self.vel * rl.get_frame_time();
+        }
     }
 
     pub fn handle_collisions(&mut self, rl: &RaylibHandle, world_map: &WorldMap) {
@@ -43,6 +50,11 @@ impl Bullet {
             start: self.pos,
             end: self.pos + self.vel * Vector2::new(0.0, 1.0) * rl.get_frame_time(),
         };
+        let bullet_line = Line {
+            start: self.pos,
+            end: self.pos + self.vel * rl.get_frame_time(),
+        };
+        self.dbg_lines = vec![bullet_x_line.clone(), bullet_y_line.clone()];
         let mut normals = vec![];
         for (y, line) in world_map.walls.iter().enumerate() {
             for (x, wall) in line.iter().enumerate() {
@@ -50,13 +62,15 @@ impl Bullet {
                     for rect in wall.get_collider().with_pos(Vector2::new(x as f32 * TILE_SIZE, y as f32 * TILE_SIZE)).rects {
                         let lines = Line::from_rect(&rect);
                         for line in lines {
-                            // Check for x collision
-                            if let Some(intersection) = line.intersection(&bullet_x_line) {
-                                normals.push((intersection, Vector2::new(-0.2, 0.2)));
-                            }
-                            // Check for y collision
-                            if let Some(intersection) = line.intersection(&bullet_y_line) {
-                                normals.push((intersection, Vector2::new(0.2, -0.2)));
+                            // Check for collision
+                            if let Some(intersection) = line.intersection(&bullet_line) {
+                                normals.push((intersection,
+                                    if line.intersection(&bullet_y_line).is_some() {
+                                        Vector2::new(0.6, -0.6)
+                                    } else {
+                                        Vector2::new(-0.6, 0.6)
+                                    }
+                                ));
                             }
                         }
                     }
@@ -69,15 +83,15 @@ impl Bullet {
             if let Some(best_normal) = normals.get(closest) {
                 if best_normal.0.length() > dist {
                     closest = i;
-                    
                 }
             }
         }
-
         if let Some(normal) = normals.get(closest) {
+            self.collided = true;
             self.vel *= normal.1;
-            self.pos = normal.0 + self.vel * 0.001;
-            self.pos_history = [self.pos;3];
+            self.pos = normal.0 + self.vel.normalized() * 0.01;
+            println!("Normal {:?}, Pos {:?}", normal.0, self.pos);
+  
         }
     }
 
@@ -128,13 +142,8 @@ impl World {
         for bullet in self.bullets.iter_mut() {
             bullet.update(rl, &self.map);
         }
-        // Filter bullets that are stopped or are colldiding with a wall
+        // Filter bullets that are stopped or are in a wall
         self.bullets.retain(|bullet| bullet.vel != Vector2::zero());
 
-        // self.bullets.retain(|bullet| {
-        //     self.map
-        //         .collides_with_wall(&bullet.get_collider())
-        //         .is_none()
-        // });
     }
 }

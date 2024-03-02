@@ -15,6 +15,7 @@ mod tile;
 mod world;
 mod world_map;
 
+#[derive(Clone)]
 pub struct Line {
     pub start: Vector2,
     pub end: Vector2,
@@ -25,7 +26,6 @@ impl Line {
     pub fn intersection(&self, other: &Line) -> Option<Vector2> {
         let denominator = (other.end.y - other.start.y) * (self.end.x - self.start.x)
             - (other.end.x - other.start.x) * (self.end.y - self.start.y);
-
         // Check if the lines are parallel
         if denominator.abs() < 0.0001 {
             return None;
@@ -42,6 +42,7 @@ impl Line {
         if (0.0..=1.0).contains(&ua) && (0.0..=1.0).contains(&ub) {
             let x = self.start.x + ua * (self.end.x - self.start.x);
             let y = self.start.y + ua * (self.end.y - self.start.y);
+            println!("Intersect: x: {x}, y: {y}");
             Some(Vector2 { x, y })
         } else {
             None
