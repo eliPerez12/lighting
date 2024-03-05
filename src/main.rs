@@ -14,69 +14,13 @@ mod renderer;
 mod tile;
 mod world;
 mod world_map;
-
-#[derive(Clone)]
-pub struct Line {
-    pub start: Vector2,
-    pub end: Vector2,
-}
-
-impl Line {
-    // Function to calculate intersection point between two lines
-    pub fn intersection(&self, other: &Line) -> Option<Vector2> {
-        let denominator = (other.end.y - other.start.y) * (self.end.x - self.start.x)
-            - (other.end.x - other.start.x) * (self.end.y - self.start.y);
-        // Check if the lines are parallel
-        if denominator.abs() < 0.0001 {
-            return None;
-        }
-
-        let ua = ((other.end.x - other.start.x) * (self.start.y - other.start.y)
-            - (other.end.y - other.start.y) * (self.start.x - other.start.x))
-            / denominator;
-        let ub = ((self.end.x - self.start.x) * (self.start.y - other.start.y)
-            - (self.end.y - self.start.y) * (self.start.x - other.start.x))
-            / denominator;
-
-        // Check if the intersection point is within the line segments
-        if (0.0..=1.0).contains(&ua) && (0.0..=1.0).contains(&ub) {
-            let x = self.start.x + ua * (self.end.x - self.start.x);
-            let y = self.start.y + ua * (self.end.y - self.start.y);
-            println!("Intersect: x: {x}, y: {y}");
-            Some(Vector2 { x, y })
-        } else {
-            None
-        }
-    }
-
-    // Returns lines from a rectangle (Top, Bottom, Left, Right)
-    pub fn from_rect(rect: &Rectangle) -> Vec<Line> {
-        vec!(
-            Line { // Top
-                start: Vector2::new(rect.x, rect.y),
-                end: Vector2::new(rect.x + rect.width, rect.y),
-            },
-            Line { // Bottom
-                start: Vector2::new(rect.x, rect.y + rect.height),
-                end: Vector2::new(rect.x + rect.width, rect.y + rect.height),
-            },
-            Line { // Left
-                start: Vector2::new(rect.x, rect.y),
-                end: Vector2::new(rect.x, rect.y + rect.height),
-            },
-            Line { // Right
-                start: Vector2::new(rect.x + rect.width, rect.y),
-                end: Vector2::new(rect.x + rect.width, rect.y + rect.height),
-            },
-        )
-    }
-}
+mod day_cycle;
 
 fn main() {
     let (mut rl, thread) = raylib::init()
         .vsync()
-        .width(1280)
-        .height(720)
+        .width(1600)
+        .height(900)
         .msaa_4x()
         .title("Lighting")
         .resizable()
@@ -95,13 +39,11 @@ fn main() {
         Vector2::new(rl.get_screen_width() as f32, rl.get_screen_height() as f32),
     );
 
-
-
     while !rl.window_should_close() {
         /* ---- Update ---- */
         let screen_size = Vector2::new(rl.get_screen_width() as f32, rl.get_screen_height() as f32);
 
-        if rl.is_key_pressed(KeyboardKey::KEY_T) {
+        if !rl.is_key_down(KeyboardKey::KEY_T) {
             player.handle_controls(&rl, &world.map);
             player.update_flashlight(&mut rl, &camera, &mut light_engine);
             light_engine
@@ -124,7 +66,6 @@ fn main() {
             light_engine.handle_spawning_light(&mut rl, &camera);
     
             renderer.update_target(&mut rl, &thread, screen_size);
-    
         }
         /* ----- Draw ----- */
         let mut d = rl.begin_drawing(&thread);

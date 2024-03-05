@@ -1,4 +1,4 @@
-use crate::{Collider, DayCycle, ImprovedCamera, LightEngine, Line, Player, WorldMap, TILE_SIZE};
+use crate::{day_cycle::DayCycle, Collider, ImprovedCamera, LightEngine, Line, Player, WorldMap, TILE_SIZE};
 use raylib::prelude::*;
 
 pub struct Bullet {
