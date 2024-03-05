@@ -310,7 +310,7 @@ impl Renderer {
                                     tg.draw_line_ex(
                                         camera.to_screen(dbg_line.start),
                                         camera.to_screen(dbg_line.end),
-                                        5.0,
+                                        3.0,
                                         Color::GREEN
                                     )
                                 }
@@ -321,6 +321,7 @@ impl Renderer {
             }
         }
 
+        // Drawing player collider
         tg.draw_rectangle_rec(
             camera.to_screen_rect(&player.get_world_collider().rects[0]),
             Color::RED,
@@ -339,5 +340,18 @@ impl Renderer {
                 }
             }
         }
+
+        // Drawing bullet debug info
+        for bullet in world.bullets.iter() {
+            if let Some(line) = &bullet.dbg_line_hit {
+                tg.draw_line_ex(
+                    camera.to_screen(line.start),
+                    camera.to_screen(line.end),
+                    20.0,
+                    Color::ORANGERED,
+                )
+            }
+        }
+
     }
 }

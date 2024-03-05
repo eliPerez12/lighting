@@ -7,6 +7,7 @@ pub struct Bullet {
     pub vel: Vector2,
     pub collided: bool,
     pub dbg_lines: Vec<Line>,
+    pub dbg_line_hit: Option<Line>,
 }
 
 impl Bullet {
@@ -17,6 +18,7 @@ impl Bullet {
             collided: false,
             pos_history: [pos; 3],
             dbg_lines: vec![],
+            dbg_line_hit: None
         }
     }
 
@@ -28,11 +30,12 @@ impl Bullet {
 
     pub fn update(&mut self, rl: &RaylibHandle, world_map: &WorldMap) {
         self.collided = false;
+        self.dbg_line_hit = None;
         self.update_history();
-        let drag = 25.0;
+        let drag = 0.0;
 
         self.vel -= self.vel.normalized() * drag * rl.get_frame_time() * 60.0;
-        if self.vel.length() <= 30.0 {
+        if self.vel.length() <= 6.0 {
             self.vel = Vector2::zero();
         }
         self.handle_collisions(rl, world_map);
@@ -42,10 +45,6 @@ impl Bullet {
     }
 
     pub fn handle_collisions(&mut self, rl: &RaylibHandle, world_map: &WorldMap) {
-        let bullet_x_line = Line {
-            start: self.pos,
-            end: self.pos + self.vel * Vector2::new(1.0, 0.0) * rl.get_frame_time(),
-        };
         let bullet_y_line = Line {
             start: self.pos,
             end: self.pos + self.vel * Vector2::new(0.0, 1.0) * rl.get_frame_time(),
@@ -54,7 +53,16 @@ impl Bullet {
             start: self.pos,
             end: self.pos + self.vel * rl.get_frame_time(),
         };
-        self.dbg_lines = vec![bullet_x_line.clone(), bullet_y_line.clone()];
+        self.dbg_lines = vec![
+            Line {
+                start: self.pos,
+                end: self.pos + self.vel * Vector2::new(3.0, 0.0) * rl.get_frame_time(),
+            },
+            Line {
+                start: self.pos,
+                end: self.pos + self.vel * Vector2::new(0.0, 3.0) * rl.get_frame_time(),
+            },
+        ];
         let mut normals = vec![];
         for (y, line) in world_map.walls.iter().enumerate() {
             for (x, wall) in line.iter().enumerate() {
@@ -69,7 +77,8 @@ impl Bullet {
                                         Vector2::new(0.6, -0.6)
                                     } else {
                                         Vector2::new(-0.6, 0.6)
-                                    }
+                                    },
+                                    line
                                 ));
                             }
                         }
@@ -90,8 +99,8 @@ impl Bullet {
             self.collided = true;
             self.vel *= normal.1;
             self.pos = normal.0 + self.vel.normalized() * 0.01;
+            self.dbg_line_hit = Some(normal.2.clone());
             println!("Normal {:?}, Pos {:?}", normal.0, self.pos);
-  
         }
     }
 
@@ -128,13 +137,16 @@ impl World {
         let mouse_pos = rl.get_mouse_position();
         let angle_to_mouse =
             (mouse_pos.y - player_screen_pos.y).atan2(mouse_pos.x - player_screen_pos.x);
-        let bullet_speed = 1000.0;
+        let bullet_speed = 200.0;
         let bullet_vel = Vector2::new(angle_to_mouse.cos(), angle_to_mouse.sin());
-
-        self.bullets.push(Bullet::new(
+        let bullet = Bullet::new(
             player.pos + bullet_vel * 15.0,
             bullet_vel * bullet_speed,
-        ));
+        );
+        if self.map.collides_with_wall(&bullet.get_collider()).is_none() {
+            self.bullets.push(bullet);
+        }
+
     }
 
     pub fn update_bullets(&mut self, rl: &RaylibHandle) {
