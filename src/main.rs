@@ -1,3 +1,4 @@
+use day_cycle::DayCycle;
 use debug::*;
 use lighting::*;
 use player::*;
@@ -7,6 +8,7 @@ use tile::*;
 use world::World;
 use world_map::*;
 
+mod day_cycle;
 mod debug;
 mod lighting;
 mod player;
@@ -14,7 +16,6 @@ mod renderer;
 mod tile;
 mod world;
 mod world_map;
-mod day_cycle;
 
 fn main() {
     let (mut rl, thread) = raylib::init()
@@ -46,25 +47,41 @@ fn main() {
         if !rl.is_key_down(KeyboardKey::KEY_T) {
             player.handle_controls(&rl, &world.map);
             player.update_flashlight(&mut rl, &camera, &mut light_engine);
+
+            // Ambient light
             light_engine
-                .get_mut_light(&player.light)
+                .get_mut_light(&player.ambient_light)
                 .set_pos(player.pos);
-    
+
+            // Muzzle flash
+            light_engine
+                .get_mut_light(&player.muzzle_light)
+                .set_pos(
+                    player.pos
+                        + player.get_vector_to_screen_pos(rl.get_mouse_position(), &camera) * 15.0,
+                )
+                .set_rotation(player.get_angle(&rl, &camera));
+
             if rl.is_key_pressed(KeyboardKey::KEY_G) {
                 world.spawn_bullet(&rl, &camera, &player);
             }
+
             world.update_bullets(&rl);
-    
+
             camera.handle_player_controls(&mut rl);
             camera.pan_to(&rl, player.pos, screen_size);
-    
+
             world.day_cycle.update(&mut rl, &mut light_engine);
             debug_info.update(&mut rl);
             debug_info.add(format!("FPS: {}", rl.get_fps()));
             debug_info.add(format!("Frame time: {}", rl.get_frame_time()));
             debug_info.add(world.day_cycle.get_debug_info());
+            debug_info.add(format!(
+                "Norm Time: {}",
+                world.day_cycle.time / DayCycle::FULL_CYCLE_LENGTH
+            ));
             light_engine.handle_spawning_light(&mut rl, &camera);
-    
+
             renderer.update_target(&mut rl, &thread, screen_size);
         }
         /* ----- Draw ----- */
@@ -77,5 +94,4 @@ fn main() {
         // Drawing UI
         debug_info.draw(&mut d);
     }
-
 }

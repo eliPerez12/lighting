@@ -4,9 +4,10 @@ use raylib::prelude::*;
 pub struct Player {
     pub pos: Vector2,
     pub vel: Vector2,
-    pub light: LightHandle,
+    pub ambient_light: LightHandle,
     animation: PlayerAnimation,
     flashlight: FlashLight,
+    pub muzzle_light: LightHandle,
 }
 
 struct FlashLight {
@@ -30,10 +31,17 @@ impl Player {
                 light_handle: light_engine.spawn_light(Light::default_cone()),
                 active: true,
             },
-            light: light_engine.spawn_light(Light::Radial {
+            ambient_light: light_engine.spawn_light(Light::Radial {
                 pos: Vector2::zero(),
                 color: Vector4::new(1.0, 1.0, 1.0, 0.35),
                 radius: 155.0,
+            }),
+            muzzle_light: light_engine.spawn_light(Light::Cone {
+                pos: Vector2::zero(),
+                color: Color::new(255, 192, 50, 255).into(),
+                angle: PI as f32,
+                rotation: 0.0,
+                radius: 60.0,
             }),
         }
     }
@@ -52,6 +60,25 @@ impl Player {
 
     pub fn get_animation_frame(&self) -> &Texture2D {
         &self.animation.frames[self.animation.current_frame]
+    }
+
+    // Get angle the player is facing
+    pub fn get_angle(&self, rl: &RaylibHandle, camera: &Camera2D) -> f32 {
+        let player_screen_pos = camera.to_screen(self.pos);
+        let mouse_pos = rl.get_mouse_position();
+        let dx = mouse_pos.x - player_screen_pos.x;
+        let dy = -(mouse_pos.y - player_screen_pos.y);
+        dy.atan2(dx) + PI as f32
+    }
+
+    pub fn get_angle_to_screen_pos(&self, screen_pos: Vector2, camera: &Camera2D) -> f32 {
+        let player_screen_pos = camera.to_screen(self.pos);
+        (screen_pos.y - player_screen_pos.y).atan2(screen_pos.x - player_screen_pos.x)
+    }
+
+    pub fn get_vector_to_screen_pos(&self, screen_pos: Vector2, camera: &Camera2D) -> Vector2 {
+        let angle_to_pos = self.get_angle_to_screen_pos(screen_pos, camera);
+        Vector2::new(angle_to_pos.cos(), angle_to_pos.sin())
     }
 
     pub fn handle_controls(&mut self, rl: &RaylibHandle, world_map: &WorldMap) {

@@ -2,7 +2,7 @@ use crate::{Light, LightEngine, LightHandle};
 use raylib::prelude::*;
 
 pub struct DayCycle {
-    time: f32,
+    pub time: f32,
     ambient_light_handle: LightHandle,
 }
 
@@ -65,9 +65,13 @@ impl DayCycle {
             }
         }
         // Sun set
-        else {
+        else if normilized_time >= 0.5 {
             Light::Ambient {
                 color: Color::BLACK.into(),
+            }
+        } else {
+            Light::Ambient {
+                color: Color::PURPLE.into(),
             }
         }
     }

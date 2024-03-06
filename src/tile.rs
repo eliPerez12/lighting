@@ -63,24 +63,28 @@ impl Line {
 
     // Returns lines from a rectangle (Top, Bottom, Left, Right)
     pub fn from_rect(rect: &Rectangle) -> Vec<Line> {
-        vec!(
-            Line { // Top
+        vec![
+            Line {
+                // Top
                 start: Vector2::new(rect.x, rect.y),
                 end: Vector2::new(rect.x + rect.width, rect.y),
             },
-            Line { // Bottom
+            Line {
+                // Bottom
                 start: Vector2::new(rect.x, rect.y + rect.height),
                 end: Vector2::new(rect.x + rect.width, rect.y + rect.height),
             },
-            Line { // Left
+            Line {
+                // Left
                 start: Vector2::new(rect.x, rect.y),
                 end: Vector2::new(rect.x, rect.y + rect.height),
             },
-            Line { // Right
+            Line {
+                // Right
                 start: Vector2::new(rect.x + rect.width, rect.y),
                 end: Vector2::new(rect.x + rect.width, rect.y + rect.height),
             },
-        )
+        ]
     }
 }
 

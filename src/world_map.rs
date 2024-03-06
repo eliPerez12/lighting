@@ -1,6 +1,4 @@
-use crate::{
-    GroundVarient, Tile, TileRotation, Wall, WallVarient
-};
+use crate::{GroundVarient, Tile, TileRotation, Wall, WallVarient};
 use raylib::prelude::*;
 
 pub struct WorldMap {

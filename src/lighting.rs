@@ -58,12 +58,20 @@ impl Light {
         }
     }
 
-    pub fn set_pos(&mut self, world_pos: Vector2) {
+    pub fn set_pos(&mut self, world_pos: Vector2) -> &mut Self {
         match self {
             Light::Radial { pos, .. } => *pos = world_pos,
             Light::Cone { pos, .. } => *pos = world_pos,
             _ => (),
+        };
+        self
+    }
+
+    pub fn set_rotation(&mut self, rot: f32) -> &mut Self {
+        if let Light::Cone { rotation, .. } = self {
+            *rotation = rot
         }
+        self
     }
 
     pub fn color(&self) -> Vector4 {

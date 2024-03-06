@@ -90,11 +90,6 @@ impl Renderer {
     ) {
         let mut tg = d.begin_texture_mode(thread, &mut self.target);
         let player_screen_pos = camera.to_screen(player.pos);
-        let mouse_pos = tg.get_mouse_position();
-        let angle_to_mouse = (mouse_pos.y - player_screen_pos.y)
-            .atan2(mouse_pos.x - player_screen_pos.x)
-            .to_degrees()
-            + 90.0;
 
         // Draw player's shadow
         tg.draw_circle(
@@ -113,7 +108,10 @@ impl Renderer {
                 Player::RENDER_SIZE.y * camera.zoom,
             ),
             (Player::RENDER_SIZE / 2.0) * camera.zoom,
-            angle_to_mouse,
+            player
+                .get_angle_to_screen_pos(tg.get_mouse_position(), camera)
+                .to_degrees()
+                + 90.0,
             Color::WHITE,
         );
     }
@@ -297,13 +295,13 @@ impl Renderer {
                                 camera.to_screen(line.start),
                                 camera.to_screen(line.end),
                                 3.0,
-                                Color::GREEN
+                                Color::GREEN,
                             );
                             tg.draw_line_ex(
                                 camera.to_screen(line.start),
                                 camera.to_screen(line.end),
                                 3.0,
-                                Color::GREEN
+                                Color::GREEN,
                             );
                             for bullet in world.bullets.iter() {
                                 for dbg_line in bullet.dbg_lines.iter() {
@@ -311,7 +309,7 @@ impl Renderer {
                                         camera.to_screen(dbg_line.start),
                                         camera.to_screen(dbg_line.end),
                                         3.0,
-                                        Color::GREEN
+                                        Color::GREEN,
                                     )
                                 }
                             }
@@ -352,6 +350,5 @@ impl Renderer {
                 )
             }
         }
-
     }
 }

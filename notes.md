@@ -6,11 +6,12 @@ Zombie survival like COD zombies
 # SHORT TERM
 Add an actual map / add more tiles
 Add props/objects
-add more camera.to_screen()
 Add shadow renderer for tiles
 Fix daycycle sunrise and sunset to closer to real life
 Add items/hotbar
 Add complex bullet behavior (breaking apart, bouncing)
+Add complex shooting behavoir and lighting
+add angle to player
 
 # LONG TERM
 Add multiplayer

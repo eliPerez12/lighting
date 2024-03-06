@@ -1,4 +1,6 @@
-use crate::{day_cycle::DayCycle, Collider, ImprovedCamera, LightEngine, Line, Player, WorldMap, TILE_SIZE};
+use crate::{
+    day_cycle::DayCycle, Collider, ImprovedCamera, LightEngine, Line, Player, WorldMap, TILE_SIZE,
+};
 use raylib::prelude::*;
 
 pub struct Bullet {
@@ -18,7 +20,7 @@ impl Bullet {
             collided: false,
             pos_history: [pos; 3],
             dbg_lines: vec![],
-            dbg_line_hit: None
+            dbg_line_hit: None,
         }
     }
 
@@ -67,23 +69,28 @@ impl Bullet {
         for (y, line) in world_map.walls.iter().enumerate() {
             for (x, wall) in line.iter().enumerate() {
                 if let Some(wall) = wall {
-                    for rect in wall.get_collider().with_pos(Vector2::new(x as f32 * TILE_SIZE, y as f32 * TILE_SIZE)).rects {
+                    for rect in wall
+                        .get_collider()
+                        .with_pos(Vector2::new(x as f32 * TILE_SIZE, y as f32 * TILE_SIZE))
+                        .rects
+                    {
                         let lines = Line::from_rect(&rect);
                         for line in lines {
                             // Check for collision
                             if let Some(intersection) = line.intersection(&bullet_line) {
-                                normals.push((intersection,
+                                normals.push((
+                                    intersection,
                                     if line.intersection(&bullet_y_line).is_some() {
                                         Vector2::new(0.6, -0.6)
                                     } else {
                                         Vector2::new(-0.6, 0.6)
                                     },
-                                    line
+                                    line,
                                 ));
                             }
                         }
                     }
-                }   
+                }
             }
         }
         let mut closest = 0usize;
@@ -139,14 +146,14 @@ impl World {
             (mouse_pos.y - player_screen_pos.y).atan2(mouse_pos.x - player_screen_pos.x);
         let bullet_speed = 200.0;
         let bullet_vel = Vector2::new(angle_to_mouse.cos(), angle_to_mouse.sin());
-        let bullet = Bullet::new(
-            player.pos + bullet_vel * 15.0,
-            bullet_vel * bullet_speed,
-        );
-        if self.map.collides_with_wall(&bullet.get_collider()).is_none() {
+        let bullet = Bullet::new(player.pos + bullet_vel * 15.0, bullet_vel * bullet_speed);
+        if self
+            .map
+            .collides_with_wall(&bullet.get_collider())
+            .is_none()
+        {
             self.bullets.push(bullet);
         }
-
     }
 
     pub fn update_bullets(&mut self, rl: &RaylibHandle) {
@@ -156,6 +163,5 @@ impl World {
         }
         // Filter bullets that are stopped or are in a wall
         self.bullets.retain(|bullet| bullet.vel != Vector2::zero());
-
     }
 }
