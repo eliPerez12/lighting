@@ -74,6 +74,15 @@ impl Light {
         self
     }
 
+    pub fn set_color(&mut self, new_color: Vector4) -> &mut Self {
+        match self {
+            Light::Radial { color, .. } => *color = new_color,
+            Light::Ambient { color, .. } => *color = new_color,
+            Light::Cone { color, .. } => *color = new_color,
+        }
+        self
+    }
+
     pub fn color(&self) -> Vector4 {
         match self {
             Light::Radial { color, .. } => *color,

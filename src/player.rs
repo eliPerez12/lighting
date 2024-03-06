@@ -7,7 +7,7 @@ pub struct Player {
     pub ambient_light: LightHandle,
     animation: PlayerAnimation,
     flashlight: FlashLight,
-    pub muzzle_light: LightHandle,
+    pub muzzle_lights: [LightHandle; 3],
 }
 
 struct FlashLight {
@@ -18,6 +18,7 @@ struct FlashLight {
 impl Player {
     pub const RENDER_SIZE: Vector2 = Vector2::new(26.0, 42.0);
     pub const COLLIDER_SIZE: f32 = 13.0;
+    pub const MUZZLE_FLASH_COLOR: Color = Color::new(255, 87, 51, 255);
     pub fn new(
         rl: &mut RaylibHandle,
         thread: &RaylibThread,
@@ -36,13 +37,23 @@ impl Player {
                 color: Vector4::new(1.0, 1.0, 1.0, 0.35),
                 radius: 155.0,
             }),
-            muzzle_light: light_engine.spawn_light(Light::Cone {
-                pos: Vector2::zero(),
-                color: Color::new(255, 192, 50, 255).into(),
-                angle: PI as f32,
-                rotation: 0.0,
-                radius: 60.0,
-            }),
+            muzzle_lights: [
+                light_engine.spawn_light(Light::Radial {
+                    pos: Vector2::zero(),
+                    color: Self::MUZZLE_FLASH_COLOR.into(),
+                    radius: 100.0,
+                }),
+                light_engine.spawn_light(Light::Radial {
+                    pos: Vector2::zero(),
+                    color: Self::MUZZLE_FLASH_COLOR.into(),
+                    radius: 25.0,
+                }),
+                light_engine.spawn_light(Light::Radial {
+                    pos: Vector2::zero(),
+                    color: Self::MUZZLE_FLASH_COLOR.into(),
+                    radius: 25.0,
+                }),
+            ],
         }
     }
 
@@ -60,15 +71,6 @@ impl Player {
 
     pub fn get_animation_frame(&self) -> &Texture2D {
         &self.animation.frames[self.animation.current_frame]
-    }
-
-    // Get angle the player is facing
-    pub fn get_angle(&self, rl: &RaylibHandle, camera: &Camera2D) -> f32 {
-        let player_screen_pos = camera.to_screen(self.pos);
-        let mouse_pos = rl.get_mouse_position();
-        let dx = mouse_pos.x - player_screen_pos.x;
-        let dy = -(mouse_pos.y - player_screen_pos.y);
-        dy.atan2(dx) + PI as f32
     }
 
     pub fn get_angle_to_screen_pos(&self, screen_pos: Vector2, camera: &Camera2D) -> f32 {

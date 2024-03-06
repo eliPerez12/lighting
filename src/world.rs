@@ -34,10 +34,10 @@ impl Bullet {
         self.collided = false;
         self.dbg_line_hit = None;
         self.update_history();
-        let drag = 0.0;
+        let drag = 12.0;
 
         self.vel -= self.vel.normalized() * drag * rl.get_frame_time() * 60.0;
-        if self.vel.length() <= 6.0 {
+        if self.vel.length() <= 45.0 {
             self.vel = Vector2::zero();
         }
         self.handle_collisions(rl, world_map);
@@ -81,9 +81,9 @@ impl Bullet {
                                 normals.push((
                                     intersection,
                                     if line.intersection(&bullet_y_line).is_some() {
-                                        Vector2::new(0.6, -0.6)
+                                        Vector2::new(0.4, -0.4)
                                     } else {
-                                        Vector2::new(-0.6, 0.6)
+                                        Vector2::new(-0.4, 0.4)
                                     },
                                     line,
                                 ));
@@ -144,7 +144,7 @@ impl World {
         let mouse_pos = rl.get_mouse_position();
         let angle_to_mouse =
             (mouse_pos.y - player_screen_pos.y).atan2(mouse_pos.x - player_screen_pos.x);
-        let bullet_speed = 200.0;
+        let bullet_speed = 1000.0;
         let bullet_vel = Vector2::new(angle_to_mouse.cos(), angle_to_mouse.sin());
         let bullet = Bullet::new(player.pos + bullet_vel * 15.0, bullet_vel * bullet_speed);
         if self

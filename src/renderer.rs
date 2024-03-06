@@ -171,7 +171,7 @@ impl Renderer {
                 camera.to_screen(bullet.pos_history[1]),
                 camera.to_screen(bullet.pos_history[2]),
                 2.0,
-                Color::new(20, 20, 20, 255),
+                Color::new(120, 120, 120, 255),
             );
 
             tg.draw_line_ex(
