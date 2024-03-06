@@ -8,6 +8,7 @@ use tile::*;
 use world::World;
 use world_map::*;
 
+mod bullet;
 mod day_cycle;
 mod debug;
 mod lighting;
@@ -53,7 +54,7 @@ fn main() {
                 .get_mut_light(&player.ambient_light)
                 .set_pos(player.pos);
 
-            if rl.is_key_pressed(KeyboardKey::KEY_G) {
+            if rl.is_key_down(KeyboardKey::KEY_G) {
                 world.spawn_bullet(&rl, &camera, &player);
                 for light in player.muzzle_lights.iter() {
                     light_engine

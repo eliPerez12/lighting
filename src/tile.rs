@@ -54,7 +54,6 @@ impl Line {
         if (0.0..=1.0).contains(&ua) && (0.0..=1.0).contains(&ub) {
             let x = self.start.x + ua * (self.end.x - self.start.x);
             let y = self.start.y + ua * (self.end.y - self.start.y);
-            println!("Intersect: x: {x}, y: {y}");
             Some(Vector2 { x, y })
         } else {
             None

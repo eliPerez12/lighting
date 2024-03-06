@@ -41,17 +41,17 @@ impl Player {
                 light_engine.spawn_light(Light::Radial {
                     pos: Vector2::zero(),
                     color: Self::MUZZLE_FLASH_COLOR.into(),
-                    radius: 100.0,
+                    radius: 90.0,
                 }),
                 light_engine.spawn_light(Light::Radial {
                     pos: Vector2::zero(),
                     color: Self::MUZZLE_FLASH_COLOR.into(),
-                    radius: 25.0,
+                    radius: 20.0,
                 }),
                 light_engine.spawn_light(Light::Radial {
                     pos: Vector2::zero(),
                     color: Self::MUZZLE_FLASH_COLOR.into(),
-                    radius: 25.0,
+                    radius: 20.0,
                 }),
             ],
         }

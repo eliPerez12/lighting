@@ -1,4 +1,4 @@
-use crate::{player::*, world::*, DebugInfo, ImprovedCamera, Line, WorldMap};
+use crate::{bullet::Bullet, player::*, world::*, DebugInfo, ImprovedCamera, Line, WorldMap};
 use raylib::prelude::*;
 
 pub const TILE_SIZE: f32 = 32.0;
