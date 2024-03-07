@@ -233,7 +233,7 @@ impl LightEngine {
         );
         shader.set_shader_value(self.shader_uniforms.screen_size, screen_size);
     }
-    
+
     pub fn handle_spawning_light(&mut self, rl: &mut RaylibHandle, camera: &Camera2D) {
         let pos = camera.to_world(rl.get_mouse_position());
         let light_radius = Light::default_radial().radius();

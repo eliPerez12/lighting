@@ -19,11 +19,11 @@ impl World {
 
     pub fn spawn_bullet(&mut self, rl: &RaylibHandle, camera: &Camera2D, player: &Player) {
         let player_screen_pos = camera.to_screen(player.pos);
-        let accuracy = PI as f32 / 100.0;
         let mouse_pos = rl.get_mouse_position();
+        let accuracy = PI as f32 / player.gun.accuracy;
         let angle_to_mouse = (mouse_pos.y - player_screen_pos.y)
             .atan2(mouse_pos.x - player_screen_pos.x)
-            + rand::thread_rng().gen_range(-accuracy..=accuracy); // Add shake to shooting
+            + rand::thread_rng().gen_range(-accuracy..accuracy); // Add shake to shooting
         let bullet_speed = 1000.0;
         let bullet_vel = Vector2::new(angle_to_mouse.cos(), angle_to_mouse.sin());
         let bullet = Bullet::new(player.pos + bullet_vel * 15.0, bullet_vel * bullet_speed);

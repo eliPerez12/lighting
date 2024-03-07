@@ -11,6 +11,7 @@ use world_map::*;
 mod bullet;
 mod day_cycle;
 mod debug;
+mod items;
 mod lighting;
 mod player;
 mod renderer;
@@ -65,6 +66,7 @@ fn main() {
                 "Norm Time: {}",
                 world.day_cycle.time / DayCycle::FULL_CYCLE_LENGTH
             ));
+            debug_info.add(format!("Bullets in mag: {}", player.gun.mag.bullets));
             light_engine.handle_spawning_light(&mut rl, &camera);
 
             renderer.update_target(&mut rl, &thread, screen_size);
