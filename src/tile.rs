@@ -88,6 +88,7 @@ impl Line {
 }
 
 impl GroundVarient {
+    // Used for parsing map data
     pub fn from_raw_u32(ground: u32) -> Option<GroundVarient> {
         match (ground - 1) & 0x0FFFFFBF {
             // Remove first byte and 64 bit
@@ -99,6 +100,7 @@ impl GroundVarient {
 }
 
 impl WallVarient {
+    // Used for parsing map data
     pub fn from_raw_u32(wall: u32) -> Option<WallVarient> {
         match (wall - 1) & 0x0FFFFFBF {
             // Remove first byte and 64 bit

@@ -37,7 +37,7 @@ impl Bullet {
         let drag = 12.0;
 
         self.vel -= self.vel.normalized() * drag * rl.get_frame_time() * 60.0;
-        if self.vel.length() <= 90.0 {
+        if self.vel.length() <= 15.0 {
             self.vel = Vector2::zero();
         }
         self.handle_collisions(rl, world_map);
@@ -47,6 +47,7 @@ impl Bullet {
     }
 
     pub fn handle_collisions(&mut self, rl: &RaylibHandle, world_map: &WorldMap) {
+        // Bullet_y_line is the bullet line if the Y vel is applied
         let bullet_y_line = Line {
             start: self.pos,
             end: self.pos + self.vel * Vector2::new(0.0, 1.0) * rl.get_frame_time(),
@@ -65,6 +66,7 @@ impl Bullet {
                 end: self.pos + self.vel * Vector2::new(0.0, 3.0) * rl.get_frame_time(),
             },
         ];
+        // Get all normals from every collison
         let mut normals = vec![];
         for (y, line) in world_map.walls.iter().enumerate() {
             for (x, wall) in line.iter().enumerate() {
@@ -94,6 +96,7 @@ impl Bullet {
                 }
             }
         }
+        // Sort normals by closest to player
         let mut closest = 0usize;
         for (i, normal) in normals.iter().enumerate() {
             let dist = normal.0.length();
@@ -103,6 +106,7 @@ impl Bullet {
                 }
             }
         }
+        // Get the closest normal and use that as the collision
         if let Some(normal) = normals.get(closest) {
             self.collided = Some(normal.1);
             self.vel *= normal.1;

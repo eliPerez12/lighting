@@ -1,4 +1,4 @@
-use crate::{Collider, ImprovedCamera, Light, LightEngine, LightHandle, WorldMap};
+use crate::{world::World, Collider, ImprovedCamera, Light, LightEngine, LightHandle, WorldMap};
 use raylib::prelude::*;
 
 pub struct Player {
@@ -101,6 +101,46 @@ impl Player {
     fn apply_velocity(&mut self) {
         self.pos += self.vel
     }
+
+    pub fn handle_shooting(&mut self, light_engine: &mut LightEngine, rl: &RaylibHandle, world: &mut World, camera: &Camera2D) {
+        // Ambient light
+        light_engine
+        .get_mut_light(&self.ambient_light)
+        .set_pos(self.pos);
+
+        // If player is trying to shoot
+        if rl.is_key_down(KeyboardKey::KEY_G) {
+            world.spawn_bullet(rl, camera, self);
+            // Set muzzle light to on and to the end of the players gun
+            for light in self.muzzle_lights.iter() {
+                light_engine
+                    .get_mut_light(light)
+                    .set_pos(
+                        self.pos
+                            + self.get_vector_to_screen_pos(rl.get_mouse_position(), camera)
+                                * 15.0,
+                    )
+                    .set_color(Color::new(255, 212, 80, 255).into());
+            }
+            // Else reduce the brightness of the muzzle light
+        } else {
+            for light in self.muzzle_lights.iter() {
+                let light = light_engine.get_mut_light(light).set_pos(
+                    self.pos
+                        + self.get_vector_to_screen_pos(rl.get_mouse_position(), camera)
+                            * 15.0,
+                );
+                let old_color = light.color();
+                light.set_color(Vector4::new(
+                    old_color.x,
+                    old_color.y,
+                    old_color.w,
+                    (old_color.z - (25.0 * rl.get_frame_time())).max(0.0),
+                ));
+            }
+        }
+    }
+    
 
     fn handle_movement_controls(&mut self, rl: &RaylibHandle) {
         // Constants that are ajusted with frame time to be consistant across fps

@@ -9,6 +9,7 @@ pub struct WorldMap {
 }
 
 impl WorldMap {
+    // Load a world map from .tmx file from Tiled
     pub fn load_from_file(path: &str, map_width: u32, map_height: u32) -> WorldMap {
         use std::io::BufRead;
 
@@ -102,7 +103,7 @@ impl WorldMap {
     }
 }
 
-// Adding additional methods to raylib camera2d
+// Adding additional methods to raylib camera2d 
 pub trait ImprovedCamera {
     fn to_screen(&self, world_pos: Vector2) -> Vector2;
     fn to_screen_x(&self, world_pos_x: f32) -> f32;

@@ -125,6 +125,7 @@ impl Light {
     }
 }
 
+// Used to store the shader uniform locations. Each i32 is a loc.
 struct ShaderUniforms {
     position: i32,
     color: i32,
@@ -145,6 +146,7 @@ pub struct LightEngine {
 pub struct LightHandle(u32);
 
 impl LightEngine {
+    // Setting the shader locations
     pub fn new(shader: &mut Shader) -> LightEngine {
         LightEngine {
             lights: HashMap::new(),
@@ -172,6 +174,8 @@ impl LightEngine {
     pub fn get_mut_light(&mut self, light_handle: &LightHandle) -> &mut Light {
         self.lights.get_mut(&light_handle.0).unwrap()
     }
+
+    // Updating the shader with new uniform values
     pub fn update_shader_values(
         &self,
         shader: &mut Shader,
@@ -229,6 +233,7 @@ impl LightEngine {
         );
         shader.set_shader_value(self.shader_uniforms.screen_size, screen_size);
     }
+    
     pub fn handle_spawning_light(&mut self, rl: &mut RaylibHandle, camera: &Camera2D) {
         let pos = camera.to_world(rl.get_mouse_position());
         let light_radius = Light::default_radial().radius();

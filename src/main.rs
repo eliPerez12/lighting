@@ -45,44 +45,11 @@ fn main() {
         /* ---- Update ---- */
         let screen_size = Vector2::new(rl.get_screen_width() as f32, rl.get_screen_height() as f32);
 
+        // Only update if player inst freezing time
         if !rl.is_key_down(KeyboardKey::KEY_T) {
             player.handle_controls(&rl, &world.map);
             player.update_flashlight(&mut rl, &camera, &mut light_engine);
-
-            // Ambient light
-            light_engine
-                .get_mut_light(&player.ambient_light)
-                .set_pos(player.pos);
-
-            if rl.is_key_down(KeyboardKey::KEY_G) {
-                world.spawn_bullet(&rl, &camera, &player);
-                for light in player.muzzle_lights.iter() {
-                    light_engine
-                        .get_mut_light(light)
-                        .set_pos(
-                            player.pos
-                                + player.get_vector_to_screen_pos(rl.get_mouse_position(), &camera)
-                                    * 15.0,
-                        )
-                        .set_color(Color::new(255, 212, 80, 255).into());
-                }
-            } else {
-                for light in player.muzzle_lights.iter() {
-                    let light = light_engine.get_mut_light(light).set_pos(
-                        player.pos
-                            + player.get_vector_to_screen_pos(rl.get_mouse_position(), &camera)
-                                * 15.0,
-                    );
-
-                    let old_color = light.color();
-                    light.set_color(Vector4::new(
-                        old_color.x,
-                        old_color.y,
-                        old_color.w,
-                        (old_color.z - (25.0 * rl.get_frame_time())).max(0.0),
-                    ));
-                }
-            }
+            player.handle_shooting(&mut light_engine, &rl, &mut world, &camera);
 
             world.update_bullets(&rl);
 
