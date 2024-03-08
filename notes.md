@@ -9,7 +9,6 @@ Add props/objects
 Fix daycycle sunrise and sunset to closer to real life
 Add items/hotbar
 Add complex bullet behavior (breaking apart, bouncing)
-add angle to player
 Add new normal calculator for lines
 
 # LONG TERM
@@ -19,6 +18,7 @@ Health/Inventory system
 Revamp Daycycle for sunrise/sunsets
 Add dynamically casted shadows
 Add shadow renderer for tiles
+Find fix for gun shooting off the side of the gun
 
 
 ```rust

@@ -11,6 +11,7 @@ pub struct Player {
     flashlight: FlashLight,
     pub muzzle_lights: [LightHandle; 3],
     pub gun: Gun,
+    pub is_sprinting: bool,
 }
 
 impl Player {
@@ -31,15 +32,12 @@ impl Player {
             pos: Vector2::zero(),
             vel: Vector2::zero(),
             animation: PlayerAnimation::new(rl, thread),
+            is_sprinting: false,
             flashlight: FlashLight {
                 light_handle: light_engine.spawn_light(Light::default_cone()),
                 active: true,
             },
-            gun: Gun {
-                mag: Magazine { bullets: 30 },
-                accuracy: 100.0,
-                time_since_shot: 0.0,
-            },
+            gun: Gun::new_assult_rifle(),
             ambient_light: light_engine.spawn_light(Light::Radial {
                 pos: Vector2::zero(),
                 color: Vector4::new(1.0, 1.0, 1.0, 0.35),
@@ -158,10 +156,10 @@ impl Player {
         camera: &Camera2D,
     ) {
         self.gun.time_since_shot += rl.get_frame_time(); // Update time since shot
-        
+
         // If player is trying to reload
         if rl.is_key_pressed(KeyboardKey::KEY_R) {
-            self.gun.mag.bullets = 30;
+            self.gun.mag.bullets = self.gun.mag.max_bullets;
         };
         // If player is trying to shoot
         let is_shooting = match rl.is_key_down(KeyboardKey::KEY_G) {
@@ -189,8 +187,14 @@ impl Player {
     fn handle_movement_controls(&mut self, rl: &RaylibHandle) {
         // Constants that are ajusted with frame time to be consistant across fps
         let player_speed = match rl.is_key_down(KeyboardKey::KEY_LEFT_SHIFT) {
-            true => Self::SPRINT_SPEED * rl.get_frame_time(),
-            false => Self::WALK_SPEED * rl.get_frame_time(),
+            true => {
+                self.is_sprinting = true;
+                Self::SPRINT_SPEED * rl.get_frame_time()
+            }
+            false => {
+                self.is_sprinting = false;
+                Self::WALK_SPEED * rl.get_frame_time()
+            }   
         };
         let player_acc = Self::WALK_ACC * rl.get_frame_time();
         let player_deacc = Self::WALK_DEACC * rl.get_frame_time();
