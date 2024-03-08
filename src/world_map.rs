@@ -1,8 +1,8 @@
-use crate::{GroundVarient, Tile, TileRotation, Wall, WallVarient};
+use crate::{Ground, GroundVarient, Player, TileRotation, Wall, WallVarient};
 use raylib::prelude::*;
 
 pub struct WorldMap {
-    pub ground: Vec<Vec<Tile>>,
+    pub ground: Vec<Vec<Ground>>,
     pub walls: Vec<Vec<Option<Wall>>>,
     pub width: u32,
     pub height: u32,
@@ -32,18 +32,18 @@ impl WorldMap {
                 .map(|s| {
                     if let Ok(ground) = s.parse::<u32>() {
                         if let Some(varient) = GroundVarient::from_raw_u32(ground) {
-                            Tile {
+                            Ground {
                                 varient, // Removing 64 bit and first byte
                                 rotation: TileRotation::from_raw_u32(ground),
                             }
                         } else {
-                            panic!("Unable to parse map");
+                            panic!("Unable to parse map, ground: {ground}");
                         }
                     } else {
                         panic!("Unable to parse map");
                     }
                 })
-                .collect::<Vec<Tile>>();
+                .collect::<Vec<Ground>>();
             ground.push(floor_map_line);
         }
         // Skipping another 4 lines
@@ -62,7 +62,7 @@ impl WorldMap {
                     if let Ok(wall) = s.parse::<u32>() {
                         if wall != 0 {
                             WallVarient::from_raw_u32(wall).map(|varient| Wall {
-                                varient, // Removing 64 bit and first byte
+                                varient,
                                 rotation: TileRotation::from_raw_u32(wall),
                             })
                         } else {
@@ -100,6 +100,61 @@ impl WorldMap {
             }
         }
         None
+    }
+
+    // Prevents player from clipping through colliders
+    pub fn handle_player_collisions(&self, player: &mut Player) {
+        let player_collider = player.get_world_collider();
+
+        // Iterate over every wall, and every collider rect in each wall collider
+        for (y, wall_line) in self.walls.iter().enumerate() {
+            for (x, wall) in wall_line.iter().enumerate() {
+                if let Some(wall) = wall {
+                    for collider_rect in wall
+                        .get_collider()
+                        .with_pos(Vector2::new(x as f32 * 32.0, y as f32 * 32.0))
+                        .rects
+                        .iter()
+                    {
+                        // Checks if player will collide with wall in y axis
+                        if let Some(_collision_rect) = collider_rect.get_collision_rec(
+                            &player_collider
+                                .with_pos(Vector2::new(0.0, player.vel.y))
+                                .rects[0],
+                        ) {
+                            // Move player to edge of wall and set vel y to 0
+                            player.vel.y = 0.0;
+                            if player.pos.y < collider_rect.y + collider_rect.height / 2.0 {
+                                player.pos.y =
+                                    collider_rect.y - player_collider.rects[0].height / 2.0;
+                            } else {
+                                player.pos.y = collider_rect.y
+                                    + collider_rect.height
+                                    + player_collider.rects[0].height / 2.0;
+                            }
+                        }
+
+                        // Checks if player will collide with wall in x axis
+                        if let Some(_collision_rect) = collider_rect.get_collision_rec(
+                            &player_collider
+                                .with_pos(Vector2::new(player.vel.x, 0.0))
+                                .rects[0],
+                        ) {
+                            // Move player to edge of wall and set vel x to 0
+                            player.vel.x = 0.0;
+                            if player.pos.x < collider_rect.x + collider_rect.width / 2.0 {
+                                player.pos.x =
+                                    collider_rect.x - player_collider.rects[0].width / 2.0;
+                            } else {
+                                player.pos.x = collider_rect.x
+                                    + collider_rect.width
+                                    + player_collider.rects[0].width / 2.0;
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

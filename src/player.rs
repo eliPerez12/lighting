@@ -34,31 +34,39 @@ impl Player {
             animation: PlayerAnimation::new(rl, thread),
             is_sprinting: false,
             flashlight: FlashLight {
-                light_handle: light_engine.spawn_light(Light::default_cone()),
-                active: true,
+                light_handle: light_engine.spawn_light(Light::default_cone()).unwrap(),
+                active: false,
             },
             gun: Gun::new_assult_rifle(),
-            ambient_light: light_engine.spawn_light(Light::Radial {
-                pos: Vector2::zero(),
-                color: Vector4::new(1.0, 1.0, 1.0, 0.35),
-                radius: 155.0,
-            }),
+            ambient_light: light_engine
+                .spawn_light(Light::Radial {
+                    pos: Vector2::zero(),
+                    color: Vector4::new(1.0, 1.0, 1.0, 0.35),
+                    radius: 155.0,
+                })
+                .unwrap(),
             muzzle_lights: [
-                light_engine.spawn_light(Light::Radial {
-                    pos: Vector2::zero(),
-                    color: Self::MUZZLE_FLASH_COLOR.into(),
-                    radius: 90.0,
-                }),
-                light_engine.spawn_light(Light::Radial {
-                    pos: Vector2::zero(),
-                    color: Self::MUZZLE_FLASH_COLOR.into(),
-                    radius: 20.0,
-                }),
-                light_engine.spawn_light(Light::Radial {
-                    pos: Vector2::zero(),
-                    color: Self::MUZZLE_FLASH_COLOR.into(),
-                    radius: 20.0,
-                }),
+                light_engine
+                    .spawn_light(Light::Radial {
+                        pos: Vector2::zero(),
+                        color: Self::MUZZLE_FLASH_COLOR.into(),
+                        radius: 90.0,
+                    })
+                    .unwrap(),
+                light_engine
+                    .spawn_light(Light::Radial {
+                        pos: Vector2::zero(),
+                        color: Self::MUZZLE_FLASH_COLOR.into(),
+                        radius: 20.0,
+                    })
+                    .unwrap(),
+                light_engine
+                    .spawn_light(Light::Radial {
+                        pos: Vector2::zero(),
+                        color: Self::MUZZLE_FLASH_COLOR.into(),
+                        radius: 20.0,
+                    })
+                    .unwrap(),
             ],
         }
     }
@@ -92,7 +100,7 @@ impl Player {
     pub fn handle_controls(&mut self, rl: &RaylibHandle, world_map: &WorldMap) {
         self.handle_movement_controls(rl);
         self.handle_flashlight_controls(rl);
-        self.handle_collisions(world_map);
+        world_map.handle_player_collisions(self);
         self.apply_velocity();
         self.animation.handle_animation(rl);
     }
@@ -194,7 +202,7 @@ impl Player {
             false => {
                 self.is_sprinting = false;
                 Self::WALK_SPEED * rl.get_frame_time()
-            }   
+            }
         };
         let player_acc = Self::WALK_ACC * rl.get_frame_time();
         let player_deacc = Self::WALK_DEACC * rl.get_frame_time();
@@ -236,60 +244,6 @@ impl Player {
                 self.vel.x = (self.vel.x - player_deacc).max(0.0);
             } else {
                 self.vel.x = (self.vel.x + player_deacc).min(0.0);
-            }
-        }
-    }
-
-    // Prevents player from clipping through colliders
-    pub fn handle_collisions(&mut self, world_map: &WorldMap) {
-        let player_collider = self.get_world_collider();
-
-        // Iterate over every wall, and every collider rect in each wall collider
-        for (y, wall_line) in world_map.walls.iter().enumerate() {
-            for (x, wall) in wall_line.iter().enumerate() {
-                if let Some(wall) = wall {
-                    for collider_rect in wall
-                        .get_collider()
-                        .with_pos(Vector2::new(x as f32 * 32.0, y as f32 * 32.0))
-                        .rects
-                        .iter()
-                    {
-                        // Checks if player will collide with wall in y axis
-                        if let Some(_collision_rect) = collider_rect.get_collision_rec(
-                            &player_collider
-                                .with_pos(Vector2::new(0.0, self.vel.y))
-                                .rects[0],
-                        ) {
-                            // Move player to edge of wall and set vel y to 0
-                            self.vel.y = 0.0;
-                            if self.pos.y < collider_rect.y + collider_rect.height / 2.0 {
-                                self.pos.y =
-                                    collider_rect.y - player_collider.rects[0].height / 2.0;
-                            } else {
-                                self.pos.y = collider_rect.y
-                                    + collider_rect.height
-                                    + player_collider.rects[0].height / 2.0;
-                            }
-                        }
-
-                        // Checks if player will collide with wall in x axis
-                        if let Some(_collision_rect) = collider_rect.get_collision_rec(
-                            &player_collider
-                                .with_pos(Vector2::new(self.vel.x, 0.0))
-                                .rects[0],
-                        ) {
-                            // Move player to edge of wall and set vel x to 0
-                            self.vel.x = 0.0;
-                            if self.pos.x < collider_rect.x + collider_rect.width / 2.0 {
-                                self.pos.x = collider_rect.x - player_collider.rects[0].width / 2.0;
-                            } else {
-                                self.pos.x = collider_rect.x
-                                    + collider_rect.width
-                                    + player_collider.rects[0].width / 2.0;
-                            }
-                        }
-                    }
-                }
             }
         }
     }

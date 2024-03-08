@@ -11,7 +11,7 @@ impl DayCycle {
     pub fn new(light_engine: &mut LightEngine) -> DayCycle {
         DayCycle {
             time: 0.25 * DayCycle::FULL_CYCLE_LENGTH,
-            ambient_light_handle: light_engine.spawn_light(Light::default_ambient()),
+            ambient_light_handle: light_engine.spawn_light(Light::default_ambient()).unwrap(),
         }
     }
     pub fn update(&mut self, rl: &mut RaylibHandle, light_engine: &mut LightEngine) {

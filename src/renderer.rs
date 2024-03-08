@@ -132,7 +132,6 @@ impl Renderer {
                 let texture_width = self.floor_tile_sheet.width() as u32 / TILE_SIZE as u32;
                 let tile_x = (tile.varient as u32) % texture_width;
                 let tile_y = (tile.varient as u32) / texture_width;
-
                 let rot_offset = tile.rotation.get_rotation_offset();
 
                 tg.draw_texture_pro(
@@ -150,7 +149,7 @@ impl Renderer {
                         TILE_SIZE * camera.zoom + 0.01 * TILE_SIZE,
                     ),
                     Vector2::zero(),
-                    0.0,
+                    tile.rotation.get_angle(),
                     Color::WHITE,
                 )
             }

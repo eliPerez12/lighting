@@ -16,15 +16,38 @@ pub struct Circle {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum WallVarient {
-    Staight,
-    Elbow,
+    Staight = 0,
+    Elbow = 1,
+    WhiteStraight = 2,
+    WhiteElbow = 3,
     TinyElbow = 4,
+    WhiteTinyElbow = 5,
 }
 
 #[derive(Clone, Copy, Debug)]
 pub enum GroundVarient {
-    Dirt,
-    Wood,
+    Dirt = 0,
+    Wood = 1,
+    Grass = 2,
+    DirtQuarterEdge = 5,
+    DirtThreeQuarterEdge = 6,
+    DirtHalfEdge = 7,
+}
+
+impl GroundVarient {
+    // Used for parsing map data
+    pub fn from_raw_u32(ground: u32) -> Option<GroundVarient> {
+        match (ground - 1) & 0x0FFFFFBF {
+            // Remove first byte and 64 bit
+            0 => Some(GroundVarient::Dirt),
+            1 => Some(GroundVarient::Wood),
+            2 => Some(GroundVarient::Grass),
+            5 => Some(GroundVarient::DirtQuarterEdge),
+            6 => Some(GroundVarient::DirtThreeQuarterEdge),
+            7 => Some(GroundVarient::DirtHalfEdge),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -87,18 +110,6 @@ impl Line {
     }
 }
 
-impl GroundVarient {
-    // Used for parsing map data
-    pub fn from_raw_u32(ground: u32) -> Option<GroundVarient> {
-        match (ground - 1) & 0x0FFFFFBF {
-            // Remove first byte and 64 bit
-            0 => Some(GroundVarient::Dirt),
-            1 => Some(GroundVarient::Wood),
-            _ => None,
-        }
-    }
-}
-
 impl WallVarient {
     // Used for parsing map data
     pub fn from_raw_u32(wall: u32) -> Option<WallVarient> {
@@ -106,7 +117,10 @@ impl WallVarient {
             // Remove first byte and 64 bit
             0 => Some(WallVarient::Staight),
             1 => Some(WallVarient::Elbow),
+            2 => Some(WallVarient::WhiteStraight),
+            3 => Some(WallVarient::WhiteElbow),
             4 => Some(WallVarient::TinyElbow),
+            5=> Some(WallVarient::WhiteTinyElbow),
             _ => None,
         }
     }
@@ -115,18 +129,18 @@ impl WallVarient {
 impl Wall {
     pub fn get_collider(&self) -> Collider {
         match self.varient {
-            WallVarient::Staight => Collider {
+            WallVarient::Staight | WallVarient::WhiteStraight => Collider {
                 rects: vec![self.rotation.get_collider_rect()],
                 circles: vec![],
             },
-            WallVarient::Elbow => Collider {
+            WallVarient::Elbow | WallVarient::WhiteElbow => Collider {
                 rects: vec![
                     self.rotation.get_collider_rect(),
                     self.rotation.rotate().get_collider_rect(),
                 ],
                 circles: vec![],
             },
-            WallVarient::TinyElbow => Collider {
+            WallVarient::TinyElbow | WallVarient::WhiteTinyElbow => Collider {
                 rects: vec![match self.rotation {
                     TileRotation::None => Rectangle::new(0.0, 22.0, 10.0, 10.0),
                     TileRotation::One => Rectangle::new(22.0, 22.0, 10.0, 10.0),
@@ -139,7 +153,7 @@ impl Wall {
     }
 }
 
-pub struct Tile {
+pub struct Ground {
     pub varient: GroundVarient,
     pub rotation: TileRotation,
 }
@@ -205,7 +219,7 @@ impl TileRotation {
             0x6 => Self::One,
             0xA => Self::Two,
             0xC => Self::Three,
-            _ => panic!("Tile rotation data corrupted"),
+            _ => panic!("Tile rotation data corrupted, flags: {:#02x}", flags),
         }
     }
 

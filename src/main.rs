@@ -67,6 +67,10 @@ fn main() {
                 world.day_cycle.time / DayCycle::FULL_CYCLE_LENGTH
             ));
             debug_info.add(format!("Bullets in mag: {}", player.gun.mag.bullets));
+            debug_info.add(format!(
+                "Spawned lights {}/400",
+                light_engine.spawned_lights()
+            ));
             light_engine.handle_spawning_light(&mut rl, &camera);
 
             renderer.update_target(&mut rl, &thread, screen_size);

@@ -163,16 +163,25 @@ impl LightEngine {
             },
         }
     }
-    pub fn spawn_light(&mut self, light: Light) -> LightHandle {
-        self.lights.insert(self.light_id, light);
-        self.light_id += 1;
-        LightHandle(self.light_id - 1)
+    pub fn spawn_light(&mut self, light: Light) -> Result<LightHandle, ()> {
+        if self.light_id < 400 {
+            self.lights.insert(self.light_id, light);
+            self.light_id += 1;
+            Ok(LightHandle(self.light_id - 1))
+        } else {
+            Err(())
+        }
     }
+
     pub fn update_light(&mut self, light_handle: &LightHandle, updated_light: Light) {
         self.lights.insert(light_handle.0, updated_light);
     }
     pub fn get_mut_light(&mut self, light_handle: &LightHandle) -> &mut Light {
         self.lights.get_mut(&light_handle.0).unwrap()
+    }
+
+    pub fn spawned_lights(&self) -> usize {
+        self.lights.len()
     }
 
     // Updating the shader with new uniform values
@@ -242,28 +251,32 @@ impl LightEngine {
                 pos,
                 color: Color::WHITE.into(),
                 radius: light_radius,
-            });
+            })
+            .unwrap();
         }
         if rl.is_key_pressed(KeyboardKey::KEY_TWO) {
             self.spawn_light(Light::Radial {
                 pos,
                 color: Color::RED.into(),
                 radius: light_radius,
-            });
+            })
+            .unwrap();
         }
         if rl.is_key_pressed(KeyboardKey::KEY_THREE) {
             self.spawn_light(Light::Radial {
                 pos,
                 color: Color::BLUE.into(),
                 radius: light_radius,
-            });
+            })
+            .unwrap();
         }
         if rl.is_key_pressed(KeyboardKey::KEY_FOUR) {
             self.spawn_light(Light::Radial {
                 pos,
                 color: Color::YELLOW.into(),
                 radius: light_radius,
-            });
+            })
+            .unwrap();
         }
     }
 }
