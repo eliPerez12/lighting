@@ -9,7 +9,7 @@ pub struct Player {
     pub ambient_light: LightHandle,
     animation: PlayerAnimation,
     flashlight: FlashLight,
-    pub muzzle_lights: [LightHandle; 3],
+    pub muzzle_light: LightHandle,
     pub gun: Gun,
     pub is_sprinting: bool,
 }
@@ -38,28 +38,20 @@ impl Player {
                 active: false,
             },
             gun: Gun::new_assult_rifle(),
-            ambient_light: light_engine.spawn_light(Light::Radial {
-                pos: Vector2::zero(),
-                color: Vector4::new(1.0, 1.0, 1.0, 0.35),
-                radius: 155.0,
-            }).unwrap(),
-            muzzle_lights: [
-                light_engine.spawn_light(Light::Radial {
+            ambient_light: light_engine
+                .spawn_light(Light::Radial {
+                    pos: Vector2::zero(),
+                    color: Vector4::new(1.0, 1.0, 1.0, 0.35),
+                    radius: 155.0,
+                })
+                .unwrap(),
+            muzzle_light: light_engine
+                .spawn_light(Light::Radial {
                     pos: Vector2::zero(),
                     color: Self::MUZZLE_FLASH_COLOR.into(),
                     radius: 90.0,
-                }).unwrap(),
-                light_engine.spawn_light(Light::Radial {
-                    pos: Vector2::zero(),
-                    color: Self::MUZZLE_FLASH_COLOR.into(),
-                    radius: 20.0,
-                }).unwrap(),
-                light_engine.spawn_light(Light::Radial {
-                    pos: Vector2::zero(),
-                    color: Self::MUZZLE_FLASH_COLOR.into(),
-                    radius: 20.0,
-                }).unwrap(),
-            ],
+                })
+                .unwrap(),
         }
     }
 
@@ -121,30 +113,25 @@ impl Player {
         // If player is trying to shoot
         if player_shooting {
             // Set muzzle light to on and to the end of the players gun
-            for light in self.muzzle_lights.iter() {
-                light_engine
-                    .get_mut_light(light)
-                    .set_pos(
-                        self.pos
-                            + self.get_vector_to_screen_pos(rl.get_mouse_position(), camera) * 15.0,
-                    )
-                    .set_color(Color::new(255, 212, 80, 255).into());
-            }
-            // Else reduce the brightness of the muzzle light
-        } else {
-            for light in self.muzzle_lights.iter() {
-                let light = light_engine.get_mut_light(light).set_pos(
+            light_engine
+                .get_mut_light(&self.muzzle_light)
+                .set_pos(
                     self.pos
                         + self.get_vector_to_screen_pos(rl.get_mouse_position(), camera) * 15.0,
-                );
-                let old_color = light.color();
-                light.set_color(Vector4::new(
-                    old_color.x,
-                    old_color.y,
-                    old_color.w,
-                    (old_color.z - (25.0 * rl.get_frame_time())).max(0.0),
-                ));
-            }
+                )
+                .set_color(Vector4::new(1.0, 0.73, 0.41, 1.5));
+        // Else reduce the brightness of the muzzle light
+        } else {
+            let light = light_engine.get_mut_light(&self.muzzle_light).set_pos(
+                self.pos + self.get_vector_to_screen_pos(rl.get_mouse_position(), camera) * 15.0,
+            );
+            let old_color = light.color();
+            light.set_color(Vector4::new(
+                old_color.x,
+                old_color.y,
+                old_color.w,
+                (old_color.z - (25.0 * rl.get_frame_time())).max(0.0),
+            ));
         }
     }
 
@@ -198,7 +185,7 @@ impl Player {
         };
         let player_acc = Self::WALK_ACC * rl.get_frame_time();
         let player_deacc = Self::WALK_DEACC * rl.get_frame_time();
-    
+
         // Calculate direction vectors for movement
         let mut direction = Vector2::new(0.0, 0.0);
         if rl.is_key_down(KeyboardKey::KEY_W) {
@@ -213,18 +200,18 @@ impl Player {
         if rl.is_key_down(KeyboardKey::KEY_D) {
             direction.x += 1.0;
         }
-    
+
         // Normalize the direction vector if it's not zero
         if direction.x != 0.0 || direction.y != 0.0 {
             let length = (direction.x * direction.x + direction.y * direction.y).sqrt();
             direction.x /= length;
             direction.y /= length;
         }
-    
+
         // Apply acceleration and deacceleration based on the normalized direction
         self.vel.x += direction.x * player_acc;
         self.vel.y += direction.y * player_acc;
-    
+
         // Limit velocity to player_speed
         let velocity_length = (self.vel.x * self.vel.x + self.vel.y * self.vel.y).sqrt();
         if velocity_length > player_speed {
@@ -232,7 +219,7 @@ impl Player {
             self.vel.x *= scale;
             self.vel.y *= scale;
         }
-    
+
         // Apply deacceleration if no keys are pressed
         if direction.x == 0.0 && direction.y == 0.0 && velocity_length != 0.0 {
             let scale = (velocity_length - player_deacc).max(0.0) / velocity_length;
@@ -240,7 +227,6 @@ impl Player {
             self.vel.y *= scale;
         }
     }
-    
 
     pub fn update_flashlight(
         &mut self,

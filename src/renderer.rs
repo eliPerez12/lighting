@@ -173,7 +173,6 @@ impl Renderer {
                 Color::new(0, 0, 0, 100),
             );
 
-
             // Bullet
             tg.draw_line_ex(
                 camera.to_screen(bullet.pos),

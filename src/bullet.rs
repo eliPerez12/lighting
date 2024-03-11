@@ -22,7 +22,7 @@ impl Bullet {
             dbg_lines: vec![],
             dbg_line_hit: None,
             collided: None,
-            drag: 12.0
+            drag: 12.0,
         }
     }
 
@@ -82,7 +82,8 @@ impl Bullet {
                             // Check for collision
                             if let Some(intersection) = line.intersection(&bullet_line) {
                                 let min_velocity_lost = 0.3;
-                                let velocity_lost = rand::thread_rng().gen_range(0.0..=min_velocity_lost);
+                                let velocity_lost =
+                                    rand::thread_rng().gen_range(0.0..=min_velocity_lost);
                                 normals.push((
                                     intersection,
                                     if line.intersection(&bullet_y_line).is_some() {

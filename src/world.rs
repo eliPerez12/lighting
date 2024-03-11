@@ -31,7 +31,10 @@ impl World {
             + rand::thread_rng().gen_range(-accuracy..accuracy); // Add shake to shooting
         let bullet_speed = 1000.0;
         let bullet_vel = Vector2::new(angle_to_mouse.cos(), angle_to_mouse.sin());
-        let bullet = Bullet::new(player.pos + player.vel + bullet_vel * 15.0, bullet_vel * bullet_speed);
+        let bullet = Bullet::new(
+            player.pos + player.vel + bullet_vel * 15.0,
+            bullet_vel * bullet_speed,
+        );
         if self
             .map
             .collides_with_wall(&bullet.get_collider())

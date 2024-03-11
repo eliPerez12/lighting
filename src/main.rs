@@ -30,19 +30,19 @@ pub fn explode(rl: &RaylibHandle, world: &mut World, camera: &Camera2D) {
         let pos = camera.to_world(rl.get_mouse_position());
         let angle = 2.0 * PI as f32 * (i as f32 / num_shrapnel as f32);
         let vel = Vector2::new(angle.cos(), angle.sin()) * shrapnel_speed;
-        let random_vel = rand::thread_rng().gen_range(1.0-shrapnel_speed_margin..1.0+shrapnel_speed_margin);
+        let random_vel =
+            rand::thread_rng().gen_range(1.0 - shrapnel_speed_margin..1.0 + shrapnel_speed_margin);
         world.bullets.push(Bullet::new(pos, vel * random_vel));
     }
     for _ in 0..num_random_shrapnel {
         let pos = camera.to_world(rl.get_mouse_position());
         let angle = rand::thread_rng().gen_range(0.0..2.0 * PI as f32);
-        let random_vel = rand::thread_rng().gen_range(1.0-shrapnel_speed_margin..1.0+shrapnel_speed_margin);
+        let random_vel =
+            rand::thread_rng().gen_range(1.0 - shrapnel_speed_margin..1.0 + shrapnel_speed_margin);
         let vel = Vector2::new(angle.cos(), angle.sin()) * shrapnel_speed;
         world.bullets.push(Bullet::new(pos, vel * random_vel));
     }
 }
-
-
 
 fn main() {
     let (mut rl, thread) = raylib::init()
@@ -80,7 +80,6 @@ fn main() {
             if rl.is_key_pressed(KeyboardKey::KEY_G) {
                 explode(&rl, &mut world, &camera);
             }
-
 
             camera.handle_player_controls(&mut rl);
             camera.pan_to(&rl, player.pos, screen_size);
