@@ -8,8 +8,8 @@ Add an actual map / add more tiles
 Add props/objects
 Fix daycycle sunrise and sunset to closer to real life
 Add items/hotbar
-Add complex bullet behavior (breaking apart, bouncing)
 Add new normal calculator for lines
+
 
 # LONG TERM
 Add multiplayer

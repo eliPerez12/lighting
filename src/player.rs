@@ -18,10 +18,10 @@ impl Player {
     pub const RENDER_SIZE: Vector2 = Vector2::new(26.0, 42.0);
     pub const COLLIDER_SIZE: f32 = 13.0;
     pub const MUZZLE_FLASH_COLOR: Color = Color::new(255, 87, 51, 255);
-    const SPRINT_SPEED: f32 = 55.0;
+    const SPRINT_SPEED: f32 = 60.0;
     const WALK_SPEED: f32 = 30.0;
-    const WALK_ACC: f32 = 7.0;
-    const WALK_DEACC: f32 = 4.0;
+    const WALK_ACC: f32 = 3.8;
+    const WALK_DEACC: f32 = 2.3;
 
     pub fn new(
         rl: &mut RaylibHandle,
@@ -185,7 +185,7 @@ impl Player {
     }
 
     fn handle_movement_controls(&mut self, rl: &RaylibHandle) {
-        // Constants that are ajusted with frame time to be consistant across fps
+        // Constants that are adjusted with frame time to be consistent across fps
         let player_speed = match rl.is_key_down(KeyboardKey::KEY_LEFT_SHIFT) {
             true => {
                 self.is_sprinting = true;
@@ -198,47 +198,49 @@ impl Player {
         };
         let player_acc = Self::WALK_ACC * rl.get_frame_time();
         let player_deacc = Self::WALK_DEACC * rl.get_frame_time();
-
-        // Player y controls
+    
+        // Calculate direction vectors for movement
+        let mut direction = Vector2::new(0.0, 0.0);
         if rl.is_key_down(KeyboardKey::KEY_W) {
-            self.vel.y = (self.vel.y - player_acc).max(-player_speed);
+            direction.y -= 1.0;
         }
         if rl.is_key_down(KeyboardKey::KEY_S) {
-            self.vel.y = (self.vel.y + player_acc).min(player_speed);
+            direction.y += 1.0;
         }
-
-        // Deaccelerating in the y
-        if !rl.is_key_down(KeyboardKey::KEY_S)
-            && !rl.is_key_down(KeyboardKey::KEY_W)
-            && self.vel.y != 0.0
-        {
-            if self.vel.y > 0.0 {
-                self.vel.y = (self.vel.y - player_deacc).max(0.0);
-            } else {
-                self.vel.y = (self.vel.y + player_deacc).min(0.0);
-            }
-        }
-
-        // Player x controls
         if rl.is_key_down(KeyboardKey::KEY_A) {
-            self.vel.x = (self.vel.x - player_acc).max(-player_speed);
+            direction.x -= 1.0;
         }
         if rl.is_key_down(KeyboardKey::KEY_D) {
-            self.vel.x = (self.vel.x + player_acc).min(player_speed);
+            direction.x += 1.0;
         }
-
-        // Deaccelerating in the x
-        if !rl.is_key_down(KeyboardKey::KEY_A)
-            && !rl.is_key_down(KeyboardKey::KEY_D)
-            && self.vel.x != 0.0
-        {
-            if self.vel.x > 0.0 {
-                self.vel.x = (self.vel.x - player_deacc).max(0.0);
-            } else {
-                self.vel.x = (self.vel.x + player_deacc).min(0.0);
-            }
+    
+        // Normalize the direction vector if it's not zero
+        if direction.x != 0.0 || direction.y != 0.0 {
+            let length = (direction.x * direction.x + direction.y * direction.y).sqrt();
+            direction.x /= length;
+            direction.y /= length;
+        }
+    
+        // Apply acceleration and deacceleration based on the normalized direction
+        self.vel.x += direction.x * player_acc;
+        self.vel.y += direction.y * player_acc;
+    
+        // Limit velocity to player_speed
+        let velocity_length = (self.vel.x * self.vel.x + self.vel.y * self.vel.y).sqrt();
+        if velocity_length > player_speed {
+            let scale = player_speed / velocity_length;
+            self.vel.x *= scale;
+            self.vel.y *= scale;
+        }
+    
+        // Apply deacceleration if no keys are pressed
+        if direction.x == 0.0 && direction.y == 0.0 && velocity_length != 0.0 {
+            let scale = (velocity_length - player_deacc).max(0.0) / velocity_length;
+            self.vel.x *= scale;
+            self.vel.y *= scale;
         }
     }
+    
 
     pub fn update_flashlight(
         &mut self,

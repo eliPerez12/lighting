@@ -17,6 +17,7 @@ pub const AMBIENT_LIGHT_DAY: Light = Light::Ambient {
     color: Vector4::new(1.0, 1.0, 1.0, 1.00),
 };
 
+#[derive(Clone)]
 pub enum Light {
     Radial {
         pos: Vector2,
@@ -62,6 +63,14 @@ impl Light {
         match self {
             Light::Radial { pos, .. } => *pos = world_pos,
             Light::Cone { pos, .. } => *pos = world_pos,
+            _ => (),
+        };
+        self
+    }
+    pub fn set_radius(&mut self, new_radius: f32) -> &mut Self {
+        match self {
+            Light::Radial { radius, .. } => *radius = new_radius,
+            Light::Cone { radius, .. } => *radius = new_radius,
             _ => (),
         };
         self

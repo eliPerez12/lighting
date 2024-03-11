@@ -81,7 +81,8 @@ impl Bullet {
                         for line in lines {
                             // Check for collision
                             if let Some(intersection) = line.intersection(&bullet_line) {
-                                let velocity_lost = rand::thread_rng().gen_range(0.0..=0.8);
+                                let min_velocity_lost = 0.3;
+                                let velocity_lost = rand::thread_rng().gen_range(0.0..=min_velocity_lost);
                                 normals.push((
                                     intersection,
                                     if line.intersection(&bullet_y_line).is_some() {

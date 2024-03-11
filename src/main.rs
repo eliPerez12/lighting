@@ -22,47 +22,32 @@ mod world;
 mod world_map;
 
 pub fn explode(rl: &RaylibHandle, world: &mut World, camera: &Camera2D) {
-    let num_shrapnel = 50;
-    let num_random_shrapnel = 20;
-    let shrapnel_speed = 400.0;
+    let num_shrapnel = 15;
+    let num_random_shrapnel = 10;
+    let shrapnel_speed = 600.0;
     let shrapnel_speed_margin = 0.3;
     for i in 0..num_shrapnel {
         let pos = camera.to_world(rl.get_mouse_position());
         let angle = 2.0 * PI as f32 * (i as f32 / num_shrapnel as f32);
         let vel = Vector2::new(angle.cos(), angle.sin()) * shrapnel_speed;
         let random_vel = rand::thread_rng().gen_range(1.0-shrapnel_speed_margin..1.0+shrapnel_speed_margin);
-        world.bullets.push(Bullet {
-            pos_history: [pos;3],
-            pos,
-            vel: vel * random_vel,
-            collided: None,
-            dbg_lines: vec![],
-            dbg_line_hit:None,
-            drag: 12.0,
-        })
+        world.bullets.push(Bullet::new(pos, vel * random_vel));
     }
     for _ in 0..num_random_shrapnel {
         let pos = camera.to_world(rl.get_mouse_position());
         let angle = rand::thread_rng().gen_range(0.0..2.0 * PI as f32);
         let random_vel = rand::thread_rng().gen_range(1.0-shrapnel_speed_margin..1.0+shrapnel_speed_margin);
         let vel = Vector2::new(angle.cos(), angle.sin()) * shrapnel_speed;
-        world.bullets.push(Bullet {
-            pos_history: [pos;3],
-            pos,
-            vel: vel * random_vel,
-            collided: None,
-            dbg_lines: vec![],
-            dbg_line_hit:None,
-            drag: 12.0,
-        })
+        world.bullets.push(Bullet::new(pos, vel * random_vel));
     }
 }
+
+
 
 fn main() {
     let (mut rl, thread) = raylib::init()
         .vsync()
-        .width(1600)
-        .height(900)
+        .size(1600, 900)
         .msaa_4x()
         .title("TDS GAME")
         .resizable()
