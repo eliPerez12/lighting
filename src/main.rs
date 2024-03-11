@@ -22,9 +22,9 @@ mod world;
 mod world_map;
 
 pub fn explode(rl: &RaylibHandle, world: &mut World, camera: &Camera2D) {
-    let num_shrapnel = 15;
-    let num_random_shrapnel = 10;
-    let shrapnel_speed = 600.0;
+    let num_shrapnel = 25;
+    let num_random_shrapnel = 15;
+    let shrapnel_speed = 500.0;
     let shrapnel_speed_margin = 0.3;
     for i in 0..num_shrapnel {
         let pos = camera.to_world(rl.get_mouse_position());
