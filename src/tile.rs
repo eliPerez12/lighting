@@ -120,7 +120,7 @@ impl WallVarient {
             2 => Some(WallVarient::WhiteStraight),
             3 => Some(WallVarient::WhiteElbow),
             4 => Some(WallVarient::TinyElbow),
-            5=> Some(WallVarient::WhiteTinyElbow),
+            5 => Some(WallVarient::WhiteTinyElbow),
             _ => None,
         }
     }

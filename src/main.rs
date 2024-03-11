@@ -1,7 +1,9 @@
+use bullet::Bullet;
 use day_cycle::DayCycle;
 use debug::*;
 use lighting::*;
 use player::*;
+use rand::Rng;
 use raylib::prelude::*;
 use renderer::*;
 use tile::*;
@@ -19,13 +21,50 @@ mod tile;
 mod world;
 mod world_map;
 
+pub fn explode(rl: &RaylibHandle, world: &mut World, camera: &Camera2D) {
+    let num_shrapnel = 50;
+    let num_random_shrapnel = 20;
+    let shrapnel_speed = 400.0;
+    let shrapnel_speed_margin = 0.3;
+    for i in 0..num_shrapnel {
+        let pos = camera.to_world(rl.get_mouse_position());
+        let angle = 2.0 * PI as f32 * (i as f32 / num_shrapnel as f32);
+        let vel = Vector2::new(angle.cos(), angle.sin()) * shrapnel_speed;
+        let random_vel = rand::thread_rng().gen_range(1.0-shrapnel_speed_margin..1.0+shrapnel_speed_margin);
+        world.bullets.push(Bullet {
+            pos_history: [pos;3],
+            pos,
+            vel: vel * random_vel,
+            collided: None,
+            dbg_lines: vec![],
+            dbg_line_hit:None,
+            drag: 12.0,
+        })
+    }
+    for _ in 0..num_random_shrapnel {
+        let pos = camera.to_world(rl.get_mouse_position());
+        let angle = rand::thread_rng().gen_range(0.0..2.0 * PI as f32);
+        let random_vel = rand::thread_rng().gen_range(1.0-shrapnel_speed_margin..1.0+shrapnel_speed_margin);
+        let vel = Vector2::new(angle.cos(), angle.sin()) * shrapnel_speed;
+        world.bullets.push(Bullet {
+            pos_history: [pos;3],
+            pos,
+            vel: vel * random_vel,
+            collided: None,
+            dbg_lines: vec![],
+            dbg_line_hit:None,
+            drag: 12.0,
+        })
+    }
+}
+
 fn main() {
     let (mut rl, thread) = raylib::init()
         .vsync()
         .width(1600)
         .height(900)
         .msaa_4x()
-        .title("Lighting")
+        .title("TDS GAME")
         .resizable()
         .build();
     let mut renderer = Renderer::new(&mut rl, &thread);
@@ -51,8 +90,12 @@ fn main() {
             player.handle_controls(&rl, &world.map);
             player.update_flashlight(&mut rl, &camera, &mut light_engine);
             player.handle_shooting(&mut light_engine, &rl, &mut world, &camera);
-
             world.update_bullets(&rl);
+
+            if rl.is_key_pressed(KeyboardKey::KEY_G) {
+                explode(&rl, &mut world, &camera);
+            }
+
 
             camera.handle_player_controls(&mut rl);
             camera.pan_to(&rl, player.pos, screen_size);

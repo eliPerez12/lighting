@@ -10,6 +10,7 @@ pub struct Bullet {
     pub collided: Option<Vector2>,
     pub dbg_lines: Vec<Line>,
     pub dbg_line_hit: Option<Line>,
+    pub drag: f32,
 }
 
 impl Bullet {
@@ -21,6 +22,7 @@ impl Bullet {
             dbg_lines: vec![],
             dbg_line_hit: None,
             collided: None,
+            drag: 12.0
         }
     }
 
@@ -34,10 +36,9 @@ impl Bullet {
         self.collided = None;
         self.dbg_line_hit = None;
         self.update_history();
-        let drag = 12.0;
 
-        self.vel -= self.vel.normalized() * drag * rl.get_frame_time() * 60.0;
-        if self.vel.length() <= 15.0 {
+        self.vel -= self.vel.normalized() * self.drag * rl.get_frame_time() * 60.0;
+        if self.vel.length() <= 20.0 {
             self.vel = Vector2::zero();
         }
         self.handle_collisions(rl, world_map);

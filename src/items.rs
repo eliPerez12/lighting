@@ -21,7 +21,7 @@ impl Gun {
         Gun {
             mag: Magazine {
                 bullets: 30,
-                max_bullets: 30,
+                max_bullets: 9999,
             },
             accuracy: 120.0,
             time_since_shot: 0.0,

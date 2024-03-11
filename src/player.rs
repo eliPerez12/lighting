@@ -38,35 +38,27 @@ impl Player {
                 active: false,
             },
             gun: Gun::new_assult_rifle(),
-            ambient_light: light_engine
-                .spawn_light(Light::Radial {
-                    pos: Vector2::zero(),
-                    color: Vector4::new(1.0, 1.0, 1.0, 0.35),
-                    radius: 155.0,
-                })
-                .unwrap(),
+            ambient_light: light_engine.spawn_light(Light::Radial {
+                pos: Vector2::zero(),
+                color: Vector4::new(1.0, 1.0, 1.0, 0.35),
+                radius: 155.0,
+            }).unwrap(),
             muzzle_lights: [
-                light_engine
-                    .spawn_light(Light::Radial {
-                        pos: Vector2::zero(),
-                        color: Self::MUZZLE_FLASH_COLOR.into(),
-                        radius: 90.0,
-                    })
-                    .unwrap(),
-                light_engine
-                    .spawn_light(Light::Radial {
-                        pos: Vector2::zero(),
-                        color: Self::MUZZLE_FLASH_COLOR.into(),
-                        radius: 20.0,
-                    })
-                    .unwrap(),
-                light_engine
-                    .spawn_light(Light::Radial {
-                        pos: Vector2::zero(),
-                        color: Self::MUZZLE_FLASH_COLOR.into(),
-                        radius: 20.0,
-                    })
-                    .unwrap(),
+                light_engine.spawn_light(Light::Radial {
+                    pos: Vector2::zero(),
+                    color: Self::MUZZLE_FLASH_COLOR.into(),
+                    radius: 90.0,
+                }).unwrap(),
+                light_engine.spawn_light(Light::Radial {
+                    pos: Vector2::zero(),
+                    color: Self::MUZZLE_FLASH_COLOR.into(),
+                    radius: 20.0,
+                }).unwrap(),
+                light_engine.spawn_light(Light::Radial {
+                    pos: Vector2::zero(),
+                    color: Self::MUZZLE_FLASH_COLOR.into(),
+                    radius: 20.0,
+                }).unwrap(),
             ],
         }
     }
@@ -170,7 +162,7 @@ impl Player {
             self.gun.mag.bullets = self.gun.mag.max_bullets;
         };
         // If player is trying to shoot
-        let is_shooting = match rl.is_key_down(KeyboardKey::KEY_G) {
+        let is_shooting = match rl.is_key_down(KeyboardKey::KEY_SPACE) {
             true =>
             // If mag isnt empty
             {
