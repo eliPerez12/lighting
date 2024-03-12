@@ -1,5 +1,4 @@
 # IDEAS
-
 Simple extraction shooter w/ multiplayer
 Zombie survival like COD zombies
 

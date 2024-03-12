@@ -7,7 +7,7 @@ pub struct DayCycle {
 }
 
 impl DayCycle {
-    pub const FULL_CYCLE_LENGTH: f32 = 40.0;
+    pub const FULL_CYCLE_LENGTH: f32 = 200.0;
     pub fn new(light_engine: &mut LightEngine) -> DayCycle {
         DayCycle {
             time: 0.25 * DayCycle::FULL_CYCLE_LENGTH,
@@ -41,14 +41,14 @@ impl DayCycle {
         let v_normilized_time =
             Vector4::new(normilized_time, normilized_time, normilized_time, 1.0);
         const NOON: f32 = 0.25;
-        const SUNRISE_LENGTH: f32 = 0.05;
-        const SUNSET_LENGTH: f32 = 0.1;
+        const SUNRISE_LENGTH: f32 = 0.09;
+        const SUNSET_LENGTH: f32 = 0.11;
         const SUNSET: f32 = 0.5;
         const TO_NOON_PHASE_LENGTH: f32 = 0.1;
         const DAY_COLOR: Vector4 = Vector4::new(1.0, 1.0, 1.0, 1.0);
         const SUNRISE_COLOR: Vector4 = Vector4::new(0.50, 0.60, 0.80, 1.00);
         const SUNSET_COLOR: Vector4 = Vector4::new(0.86, 0.52, 0.4, 1.00);
-        const NIGHT_COLOR: Vector4 = Vector4::new(0.0, 0.05, 0.1, 1.0);
+        const NIGHT_COLOR: Vector4 = Vector4::new(0.0, 0.03, 0.07, 1.0);
 
         let final_color = {
             // Sun rising from ntime 1.0 - sunrise length to 1.0
@@ -56,17 +56,14 @@ impl DayCycle {
                 // Differance in color from night to halfway to full sunrise
                 let diff_color = sub_vector4(mul_f_vector4(SUNRISE_COLOR, 0.5), NIGHT_COLOR);
                 // how far along to halfway to sunrise length
-                let step = (normilized_time -(1.0-SUNRISE_LENGTH)) / SUNRISE_LENGTH;
+                let step = (normilized_time - (1.0 - SUNRISE_LENGTH)) / SUNRISE_LENGTH;
                 add_vector4(NIGHT_COLOR, mul_f_vector4(diff_color, step))
             }
             // Sun rising from ntime 0.0 to sunrise length
             else if (0.0..=SUNRISE_LENGTH).contains(&normilized_time) {
                 mul_vector4(
                     SUNRISE_COLOR,
-                    add_f_vector4(
-                        mul_f_vector4(v_normilized_time, 0.5/ SUNRISE_LENGTH),
-                        0.5,
-                    ),
+                    add_f_vector4(mul_f_vector4(v_normilized_time, 0.5 / SUNRISE_LENGTH), 0.5),
                 )
             }
             // Sun turning to day color after sunrise
@@ -74,8 +71,8 @@ impl DayCycle {
                 // Differance in color from sunrise to sunset
                 let diff_color = sub_vector4(DAY_COLOR, SUNRISE_COLOR);
                 // How far along the change phase
-                let step =
-                    (normilized_time - SUNRISE_LENGTH) / (NOON - TO_NOON_PHASE_LENGTH - SUNRISE_LENGTH);
+                let step = (normilized_time - SUNRISE_LENGTH)
+                    / (NOON - TO_NOON_PHASE_LENGTH - SUNRISE_LENGTH);
                 add_vector4(SUNRISE_COLOR, mul_f_vector4(diff_color, step))
             }
             // Sun turning to sunset after daytime
@@ -83,7 +80,6 @@ impl DayCycle {
                 let diff_color = sub_vector4(DAY_COLOR, SUNSET_COLOR);
                 // how far along to halfway to sunrset length
                 let step = (normilized_time - SUNSET + SUNSET_LENGTH) / SUNSET_LENGTH;
-                println!("Step {step}, diff_color: {:?}", diff_color);
                 sub_vector4(DAY_COLOR, mul_f_vector4(diff_color, step))
             }
             // Sun turing to night after sunset
@@ -91,12 +87,9 @@ impl DayCycle {
                 // Differance in color from sunset to night
                 let diff_color = sub_vector4(SUNSET_COLOR, NIGHT_COLOR);
                 // How far along the change phase
-                let step =
-                    (normilized_time - SUNSET) / (SUNSET_LENGTH);
-                println!("Step {step}, diff_color: {:?}", diff_color);
+                let step = (normilized_time - SUNSET) / (SUNSET_LENGTH);
                 sub_vector4(SUNSET_COLOR, mul_f_vector4(diff_color, step))
-            }
-            else if (SUNRISE_LENGTH..(0.5 - SUNRISE_LENGTH)).contains(&normilized_time) {
+            } else if (SUNRISE_LENGTH..(0.5 - SUNRISE_LENGTH)).contains(&normilized_time) {
                 DAY_COLOR
             } else {
                 NIGHT_COLOR
@@ -162,4 +155,3 @@ fn sub_vector4(vector: Vector4, other_vector: Vector4) -> Vector4 {
         vector.w,
     )
 }
-

@@ -42,7 +42,7 @@ impl Player {
                 .spawn_light(Light::Radial {
                     pos: Vector2::zero(),
                     color: Vector4::new(1.0, 1.0, 1.0, 0.35),
-                    radius: 155.0,
+                    radius: 110.0,
                 })
                 .unwrap(),
             muzzle_light: light_engine

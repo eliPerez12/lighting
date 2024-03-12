@@ -145,8 +145,8 @@ impl Renderer {
                     Rectangle::new(
                         camera.to_screen_x(x as f32 * TILE_SIZE + rot_offset.x),
                         camera.to_screen_y(y as f32 * TILE_SIZE + rot_offset.y),
-                        TILE_SIZE * camera.zoom + 0.01 * TILE_SIZE,
-                        TILE_SIZE * camera.zoom + 0.01 * TILE_SIZE,
+                        TILE_SIZE * camera.zoom + 0.001 * TILE_SIZE,
+                        TILE_SIZE * camera.zoom + 0.001 * TILE_SIZE,
                     ),
                     Vector2::zero(),
                     tile.rotation.get_angle(),
@@ -211,8 +211,8 @@ impl Renderer {
                         Rectangle::new(
                             camera.to_screen_x(x as f32 * TILE_SIZE + rot_offset.x),
                             camera.to_screen_y(y as f32 * TILE_SIZE + rot_offset.y),
-                            TILE_SIZE * camera.zoom + 0.01 * TILE_SIZE,
-                            TILE_SIZE * camera.zoom + 0.01 * TILE_SIZE,
+                            TILE_SIZE * camera.zoom + 0.001 * TILE_SIZE,
+                            TILE_SIZE * camera.zoom + 0.001 * TILE_SIZE,
                         ),
                         Vector2::zero(),
                         tile.rotation.get_angle(),

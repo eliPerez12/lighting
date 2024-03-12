@@ -1,14 +1,14 @@
-use bullet::Bullet;
 use day_cycle::DayCycle;
 use debug::*;
+use items::explode;
 use lighting::*;
 use player::*;
-use rand::Rng;
 use raylib::prelude::*;
-use renderer::*;
 use tile::*;
+use ui_renderer::UIRenderer;
 use world::World;
 use world_map::*;
+use world_renderer::*;
 
 mod bullet;
 mod day_cycle;
@@ -16,33 +16,11 @@ mod debug;
 mod items;
 mod lighting;
 mod player;
-mod renderer;
 mod tile;
+mod ui_renderer;
 mod world;
 mod world_map;
-
-pub fn explode(rl: &RaylibHandle, world: &mut World, camera: &Camera2D) {
-    let num_shrapnel = 25;
-    let num_random_shrapnel = 15;
-    let shrapnel_speed = 500.0;
-    let shrapnel_speed_margin = 0.3;
-    for i in 0..num_shrapnel {
-        let pos = camera.to_world(rl.get_mouse_position());
-        let angle = 2.0 * PI as f32 * (i as f32 / num_shrapnel as f32);
-        let vel = Vector2::new(angle.cos(), angle.sin()) * shrapnel_speed;
-        let random_vel =
-            rand::thread_rng().gen_range(1.0 - shrapnel_speed_margin..1.0 + shrapnel_speed_margin);
-        world.bullets.push(Bullet::new(pos, vel * random_vel));
-    }
-    for _ in 0..num_random_shrapnel {
-        let pos = camera.to_world(rl.get_mouse_position());
-        let angle = rand::thread_rng().gen_range(0.0..2.0 * PI as f32);
-        let random_vel =
-            rand::thread_rng().gen_range(1.0 - shrapnel_speed_margin..1.0 + shrapnel_speed_margin);
-        let vel = Vector2::new(angle.cos(), angle.sin()) * shrapnel_speed;
-        world.bullets.push(Bullet::new(pos, vel * random_vel));
-    }
-}
+mod world_renderer;
 
 fn main() {
     let (mut rl, thread) = raylib::init()
@@ -110,6 +88,6 @@ fn main() {
         renderer.draw_world(&mut d, &thread, &player, &camera, &world, &debug_info);
 
         // Drawing UI
-        debug_info.draw(&mut d);
+        UIRenderer::render_ui(&mut d, &debug_info);
     }
 }
