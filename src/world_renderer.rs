@@ -223,32 +223,6 @@ impl Renderer {
         }
     }
 
-    // Draws debug information about tiles
-    fn _draw_debug_grid(
-        &mut self,
-        thread: &RaylibThread,
-        d: &mut RaylibDrawHandle,
-        map: &WorldMap,
-        camera: &Camera2D,
-    ) {
-        let mut tg = d.begin_texture_mode(thread, &mut self.target);
-        // Drawing debug tile grid
-        for y in 0..map.height {
-            for x in 0..map.width {
-                tg.draw_rectangle_lines_ex(
-                    Rectangle::new(
-                        camera.to_screen_x(x as f32 * TILE_SIZE),
-                        camera.to_screen_y(y as f32 * TILE_SIZE),
-                        TILE_SIZE * camera.zoom,
-                        TILE_SIZE * camera.zoom,
-                    ),
-                    0.17 * camera.zoom,
-                    Color::YELLOW,
-                )
-            }
-        }
-    }
-
     fn draw_debug_colliders(
         &mut self,
         thread: &RaylibThread,

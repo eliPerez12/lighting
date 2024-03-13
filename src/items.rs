@@ -6,6 +6,7 @@ pub struct Gun {
     pub mag: Magazine,
     pub accuracy: f32,
     pub time_since_shot: f32, // in milliseconds
+    pub fire_rate: f32,
 }
 
 pub struct Magazine {
@@ -27,6 +28,7 @@ impl Gun {
             },
             accuracy: 120.0,
             time_since_shot: 0.0,
+            fire_rate: 1.0/12.0,
         }
     }
 }

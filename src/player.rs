@@ -149,25 +149,20 @@ impl Player {
             self.gun.mag.bullets = self.gun.mag.max_bullets;
         };
         // If player is trying to shoot
-        let is_shooting = match rl.is_key_down(KeyboardKey::KEY_SPACE) {
-            true =>
+        let is_shooting = if rl.is_key_down(KeyboardKey::KEY_SPACE) &&
             // If mag isnt empty
+            self.gun.mag.bullets > 0
+                && self.gun.time_since_shot > self.gun.fire_rate
+                && self.animation.current_frame == PlayerAnimation::FRAME_AMOUNT
             {
-                if self.gun.mag.bullets > 0
-                    && self.gun.time_since_shot > 0.1
-                    && self.animation.current_frame == PlayerAnimation::FRAME_AMOUNT
-                {
-                    // Shoot bullet
-                    world.spawn_bullet(rl, camera, self);
-                    self.gun.mag.bullets -= 1;
-                    self.gun.time_since_shot = 0.0;
-                    true
-                } else {
-                    false
-                }
-            }
-            false => false,
-        };
+                // Shoot bullet
+                world.spawn_bullet(rl, camera, self);
+                self.gun.mag.bullets -= 1;
+                self.gun.time_since_shot = 0.0;
+                true
+            } else {
+                false
+            };
         self.handle_lighting(light_engine, rl, camera, is_shooting);
     }
 

@@ -7,7 +7,7 @@ pub struct DayCycle {
 }
 
 impl DayCycle {
-    pub const FULL_CYCLE_LENGTH: f32 = 200.0;
+    pub const FULL_CYCLE_LENGTH: f32 = 80.0;
     pub fn new(light_engine: &mut LightEngine) -> DayCycle {
         DayCycle {
             time: 0.25 * DayCycle::FULL_CYCLE_LENGTH,

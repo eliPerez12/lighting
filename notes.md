@@ -9,15 +9,13 @@ Fix daycycle sunrise and sunset to closer to real life
 Add items/hotbar
 Add new normal calculator for lines
 
-
 # LONG TERM
 Add multiplayer
 GUI
 Health/Inventory system
 Revamp Daycycle for sunrise/sunsets
 Add dynamically casted shadows
-Add shadow renderer for tiles
-Find fix for gun shooting off the side of the gun
+Add shadow renderer for tiles ( either baked into map or rendered throught the renderer )
 
 
 ```rust

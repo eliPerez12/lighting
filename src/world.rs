@@ -30,10 +30,15 @@ impl World {
             .atan2(mouse_pos.x - player_screen_pos.x)
             + rand::thread_rng().gen_range(-accuracy..accuracy); // Add shake to shooting
         let bullet_speed = 1000.0;
+        let bullet_speed_accuracy = 10.0;
         let bullet_vel = Vector2::new(angle_to_mouse.cos(), angle_to_mouse.sin());
         let bullet = Bullet::new(
             player.pos + player.vel + bullet_vel * 15.0,
-            bullet_vel * bullet_speed,
+            bullet_vel
+                * (rand::thread_rng().gen_range(
+                    bullet_speed - bullet_speed / bullet_speed_accuracy
+                        ..bullet_speed + bullet_speed/bullet_speed_accuracy,
+                )),
         );
         if self
             .map
