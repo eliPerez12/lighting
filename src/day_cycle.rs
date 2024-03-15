@@ -1,54 +1,60 @@
 use crate::{Light, LightEngine, LightHandle};
 use raylib::prelude::*;
 
+pub const FULL_CYCLE_LENGTH: f32 = 25.0;
+pub const SUNRISE: f32 = 0.0;
+pub const NOON: f32 = 0.25;
+pub const SUNRISE_LENGTH: f32 = 0.09;
+pub const SUNSET_LENGTH: f32 = 0.11;
+pub const SUNSET: f32 = 0.5;
+pub const MIDNIGHT: f32 = 0.75;
+pub const TO_NOON_PHASE_LENGTH: f32 = 0.1;
+pub const DAY_COLOR: Vector4 = Vector4::new(1.0, 1.0, 1.0, 1.0);
+pub const SUNRISE_COLOR: Vector4 = Vector4::new(0.50, 0.60, 0.80, 1.00);
+pub const SUNSET_COLOR: Vector4 = Vector4::new(0.86, 0.52, 0.4, 1.00);
+pub const NIGHT_COLOR: Vector4 = Vector4::new(0.0, 0.03, 0.07, 1.0);
+
 pub struct DayCycle {
     pub time: f32,
     ambient_light_handle: LightHandle,
 }
 
 impl DayCycle {
-    pub const FULL_CYCLE_LENGTH: f32 = 80.0;
     pub fn new(light_engine: &mut LightEngine) -> DayCycle {
         DayCycle {
-            time: 0.25 * DayCycle::FULL_CYCLE_LENGTH,
+            time: 0.25 * FULL_CYCLE_LENGTH,
             ambient_light_handle: light_engine.spawn_light(Light::default_ambient()).unwrap(),
         }
     }
     pub fn update(&mut self, rl: &mut RaylibHandle, light_engine: &mut LightEngine) {
         self.time += rl.get_frame_time();
-        if self.time > Self::FULL_CYCLE_LENGTH {
-            self.time -= Self::FULL_CYCLE_LENGTH;
+        if self.time > FULL_CYCLE_LENGTH {
+            self.time -= FULL_CYCLE_LENGTH;
         };
         if rl.is_key_pressed(KeyboardKey::KEY_SEVEN) {
-            self.time = Self::FULL_CYCLE_LENGTH * 0.0;
+            self.time = FULL_CYCLE_LENGTH * 1.0 - SUNRISE_LENGTH;
         }
         if rl.is_key_pressed(KeyboardKey::KEY_EIGHT) {
-            self.time = Self::FULL_CYCLE_LENGTH * 0.25;
+            self.time = FULL_CYCLE_LENGTH * NOON;
         }
         if rl.is_key_pressed(KeyboardKey::KEY_NINE) {
-            self.time = Self::FULL_CYCLE_LENGTH * 0.5;
+            self.time = FULL_CYCLE_LENGTH * SUNSET - SUNRISE_LENGTH;
         }
         if rl.is_key_pressed(KeyboardKey::KEY_ZERO) {
-            self.time = Self::FULL_CYCLE_LENGTH * 0.75;
+            self.time = FULL_CYCLE_LENGTH * MIDNIGHT;
         }
         light_engine.update_light(self.ambient_light_handle(), self.get_ambient_light());
     }
     pub fn ambient_light_handle(&self) -> &LightHandle {
         &self.ambient_light_handle
     }
+    pub fn get_normilized_time(&self) -> f32 {
+        self.time / FULL_CYCLE_LENGTH
+    }
     pub fn get_ambient_light(&self) -> Light {
-        let normilized_time = self.time / Self::FULL_CYCLE_LENGTH;
+        let normilized_time = self.get_normilized_time();
         let v_normilized_time =
             Vector4::new(normilized_time, normilized_time, normilized_time, 1.0);
-        const NOON: f32 = 0.25;
-        const SUNRISE_LENGTH: f32 = 0.09;
-        const SUNSET_LENGTH: f32 = 0.11;
-        const SUNSET: f32 = 0.5;
-        const TO_NOON_PHASE_LENGTH: f32 = 0.1;
-        const DAY_COLOR: Vector4 = Vector4::new(1.0, 1.0, 1.0, 1.0);
-        const SUNRISE_COLOR: Vector4 = Vector4::new(0.50, 0.60, 0.80, 1.00);
-        const SUNSET_COLOR: Vector4 = Vector4::new(0.86, 0.52, 0.4, 1.00);
-        const NIGHT_COLOR: Vector4 = Vector4::new(0.0, 0.03, 0.07, 1.0);
 
         let final_color = {
             // Sun rising from ntime 1.0 - sunrise length to 1.0
@@ -60,7 +66,7 @@ impl DayCycle {
                 add_vector4(NIGHT_COLOR, mul_f_vector4(diff_color, step))
             }
             // Sun rising from ntime 0.0 to sunrise length
-            else if (0.0..=SUNRISE_LENGTH).contains(&normilized_time) {
+            else if (SUNRISE..=SUNRISE_LENGTH).contains(&normilized_time) {
                 mul_vector4(
                     SUNRISE_COLOR,
                     add_f_vector4(mul_f_vector4(v_normilized_time, 0.5 / SUNRISE_LENGTH), 0.5),
@@ -99,8 +105,8 @@ impl DayCycle {
     }
 
     pub fn get_debug_info(&self) -> String {
-        let hour = ((self.time / DayCycle::FULL_CYCLE_LENGTH + 0.25) * 24.0) as i32;
-        let minute = (self.time / DayCycle::FULL_CYCLE_LENGTH * 24.0 * 60.0 % 60.0) as i32;
+        let hour = ((self.time / FULL_CYCLE_LENGTH + 0.25) * 24.0) as i32;
+        let minute = (self.time / FULL_CYCLE_LENGTH * 24.0 * 60.0 % 60.0) as i32;
         format!(
             "Game Time: {}:{}{} {}",
             if hour % 12 == 0 { 12 } else { hour % 12 },

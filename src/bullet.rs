@@ -123,10 +123,9 @@ impl Bullet {
             rects: vec![Rectangle {
                 x: self.pos.x,
                 y: self.pos.y,
-                width: 0.5,
-                height: 0.5,
+                width: 1.0,
+                height: 1.0,
             }],
-            circles: vec![],
         }
     }
 }

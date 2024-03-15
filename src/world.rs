@@ -37,7 +37,7 @@ impl World {
             bullet_vel
                 * (rand::thread_rng().gen_range(
                     bullet_speed - bullet_speed / bullet_speed_accuracy
-                        ..bullet_speed + bullet_speed/bullet_speed_accuracy,
+                        ..bullet_speed + bullet_speed / bullet_speed_accuracy,
                 )),
         );
         if self

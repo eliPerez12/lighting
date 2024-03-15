@@ -1,4 +1,10 @@
-use crate::{bullet::Bullet, player::*, world::*, DebugInfo, ImprovedCamera, Line, WorldMap};
+use crate::{
+    bullet::Bullet,
+    day_cycle::{self, SUNRISE_LENGTH, SUNSET, SUNSET_LENGTH},
+    player::*,
+    world::*,
+    DebugInfo, ImprovedCamera, Line, WorldMap,
+};
 use raylib::prelude::*;
 
 pub const TILE_SIZE: f32 = 32.0;
@@ -6,6 +12,7 @@ pub const TILE_SIZE: f32 = 32.0;
 pub struct Renderer {
     pub shader: Shader,
     target: RenderTexture2D,
+    shadow_target: RenderTexture2D,
     floor_tile_sheet: Texture2D,
     wall_tile_sheet: Texture2D,
 }
@@ -19,6 +26,13 @@ impl Renderer {
                 Some(include_str!("../shaders/lighting.fs")),
             ),
             target: rl
+                .load_render_texture(
+                    thread,
+                    rl.get_screen_width() as u32,
+                    rl.get_screen_height() as u32,
+                )
+                .unwrap(),
+            shadow_target: rl
                 .load_render_texture(
                     thread,
                     rl.get_screen_width() as u32,
@@ -45,6 +59,9 @@ impl Renderer {
             self.target = rl
                 .load_render_texture(thread, screen_size.x as u32, screen_size.y as u32)
                 .unwrap();
+            self.shadow_target = rl
+                .load_render_texture(thread, screen_size.x as u32, screen_size.y as u32)
+                .unwrap();
         }
     }
 
@@ -67,6 +84,7 @@ impl Renderer {
         // Draw world onto the renderers target
         self.clear_target(d, thread);
         self.draw_floor(d, thread, &world.map, camera);
+        self.draw_wall_shadows(d, thread, world, camera);
         self.draw_walls(d, thread, &world.map, camera);
         self.draw_player(d, thread, camera, player);
         self.draw_bullets(&world.bullets, d, thread, camera);
@@ -249,13 +267,6 @@ impl Renderer {
                             Color::BLUE,
                         );
 
-                        tg.draw_triangle(
-                            camera.to_screen(Vector2::new(rect.x, rect.y)),
-                            camera.to_screen(Vector2::new(rect.x + rect.width, rect.y)),
-                            camera.to_screen(Vector2::new(rect.x, rect.y + rect.height)),
-                            Color::GRAY,
-                        );
-
                         for line in Line::from_rect(rect) {
                             tg.draw_line_ex(
                                 camera.to_screen(line.start),
@@ -316,5 +327,101 @@ impl Renderer {
                 )
             }
         }
+    }
+
+    fn draw_wall_shadows(
+        &mut self,
+        d: &mut RaylibDrawHandle,
+        thread: &RaylibThread,
+        world: &World,
+        camera: &Camera2D,
+    ) {
+        let screen_size = Vector2::new(d.get_screen_width() as f32, d.get_screen_height() as f32);
+
+        let shadow_x_length = 12.0;
+        let shadow_y_length = 6.0;
+        let normilized_time = world.day_cycle.get_normilized_time();
+        let default_shadow_color = 55.0;
+
+        let shadow_color = Color::new(
+            0,
+            0,
+            0,
+            // Sun rising
+            if normilized_time > 1.0 - day_cycle::SUNRISE_LENGTH {
+                (
+                    (normilized_time - (1.0 - day_cycle::SUNRISE_LENGTH)) / SUNRISE_LENGTH
+                        * default_shadow_color
+                ) as u8
+            }
+            // Sun setting 
+            else if normilized_time > SUNSET {
+                dbg!(
+                    (default_shadow_color
+                        - (((normilized_time) - SUNSET) / SUNSET_LENGTH * default_shadow_color))
+                        as u8
+                )
+            }
+            // Full night time
+            else if (day_cycle::SUNSET + day_cycle::SUNSET_LENGTH
+                ..1.0 - day_cycle::SUNRISE_LENGTH)
+                .contains(&normilized_time)
+            {
+                0
+            }
+            // Full Day time
+            else {
+                default_shadow_color as u8
+            },
+        );
+
+        let mut shd = d.begin_texture_mode(thread, &mut self.shadow_target);
+        shd.clear_background(Color::new(0, 0, 0, 0));
+
+        // Drawing debug colliders for walls
+        for y in 0..world.map.height {
+            for x in 0..world.map.height {
+                if let Some(wall) = &world.map.walls[y as usize][x as usize] {
+                    for rect in &wall
+                        .get_collider()
+                        .with_pos(Vector2::new(x as f32 * TILE_SIZE, y as f32 * TILE_SIZE))
+                        .rects
+                    {
+                        // Before noon
+                        if !(day_cycle::NOON..=1.0 - SUNRISE_LENGTH).contains(&normilized_time) {
+                            let shadow_width = if normilized_time > 1.0 - SUNRISE_LENGTH {
+                                1.0
+                            } else {
+                                1.0 - normilized_time.max(day_cycle::SUNRISE) / 0.25
+                            };
+                            let screen_rect = Rectangle::new(
+                                screen_size.x - camera.to_screen_x(rect.x + rect.width),
+                                camera.to_screen_y(rect.y - shadow_width * shadow_y_length),
+                                (rect.width + shadow_width * shadow_x_length) * camera.zoom,
+                                (rect.height + shadow_width * shadow_y_length) * camera.zoom,
+                            );
+                            shd.draw_rectangle_rec(screen_rect, Color::new(255, 255, 255, 255));
+                        }
+                        // After noon
+                        else if normilized_time > day_cycle::NOON {
+                            let shadow_width =
+                                (normilized_time.min(day_cycle::SUNSET) - day_cycle::NOON) * 4.0;
+                            let screen_rect_width =
+                                (rect.width + shadow_width * shadow_x_length) * camera.zoom;
+                            let screen_rect = Rectangle::new(
+                                (screen_size.x - camera.to_screen_x(rect.x)) - screen_rect_width,
+                                camera.to_screen_y(rect.y),
+                                screen_rect_width,
+                                (rect.height + shadow_width * shadow_y_length) * camera.zoom,
+                            );
+                            shd.draw_rectangle_rec(screen_rect, Color::new(255, 255, 255, 255));
+                        }
+                    }
+                }
+            }
+        }
+        drop(shd);
+        let mut tg = d.begin_texture_mode(thread, &mut self.target);
+        tg.draw_texture_ex(&self.shadow_target, screen_size, 180.0, 1.0, shadow_color)
     }
 }

@@ -63,7 +63,6 @@ impl Player {
                 width: Self::COLLIDER_SIZE,
                 height: Self::COLLIDER_SIZE,
             }],
-            circles: vec![],
         }
     }
 
@@ -154,15 +153,15 @@ impl Player {
             self.gun.mag.bullets > 0
                 && self.gun.time_since_shot > self.gun.fire_rate
                 && self.animation.current_frame == PlayerAnimation::FRAME_AMOUNT
-            {
-                // Shoot bullet
-                world.spawn_bullet(rl, camera, self);
-                self.gun.mag.bullets -= 1;
-                self.gun.time_since_shot = 0.0;
-                true
-            } else {
-                false
-            };
+        {
+            // Shoot bullet
+            world.spawn_bullet(rl, camera, self);
+            self.gun.mag.bullets -= 1;
+            self.gun.time_since_shot = 0.0;
+            true
+        } else {
+            false
+        };
         self.handle_lighting(light_engine, rl, camera, is_shooting);
     }
 

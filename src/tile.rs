@@ -127,18 +127,17 @@ impl WallVarient {
 }
 
 impl Wall {
+    // TODO: Rework all of this
     pub fn get_collider(&self) -> Collider {
         match self.varient {
             WallVarient::Staight | WallVarient::WhiteStraight => Collider {
                 rects: vec![self.rotation.get_collider_rect()],
-                circles: vec![],
             },
             WallVarient::Elbow | WallVarient::WhiteElbow => Collider {
                 rects: vec![
                     self.rotation.get_collider_rect(),
                     self.rotation.rotate().get_collider_rect(),
                 ],
-                circles: vec![],
             },
             WallVarient::TinyElbow | WallVarient::WhiteTinyElbow => Collider {
                 rects: vec![match self.rotation {
@@ -147,7 +146,6 @@ impl Wall {
                     TileRotation::Two => Rectangle::new(0.0, 0.0, 10.0, 10.0),
                     TileRotation::Three => Rectangle::new(22.0, 0.0, 10.0, 10.0),
                 }],
-                circles: vec![],
             },
         }
     }
@@ -169,7 +167,6 @@ pub enum TileRotation {
 #[derive(Debug)]
 pub struct Collider {
     pub rects: Vec<Rectangle>,
-    pub circles: Vec<Circle>,
 }
 
 impl Collider {
@@ -195,16 +192,6 @@ impl Collider {
                     y: rect.y + pos.y,
                     width: rect.width,
                     height: rect.height,
-                })
-                .collect(),
-
-            circles: self
-                .circles
-                .iter()
-                .map(|circle| Circle {
-                    x: circle.x + pos.x,
-                    y: circle.y + pos.y,
-                    radius: circle.radius,
                 })
                 .collect(),
         }

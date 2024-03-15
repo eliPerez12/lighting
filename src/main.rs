@@ -1,18 +1,16 @@
-use day_cycle::DayCycle;
-use debug::*;
 use items::explode;
 use lighting::*;
 use player::*;
 use raylib::prelude::*;
 use tile::*;
 use ui_renderer::UIRenderer;
+use ui_renderer::*;
 use world::World;
 use world_map::*;
 use world_renderer::*;
 
 mod bullet;
 mod day_cycle;
-mod debug;
 mod items;
 mod lighting;
 mod player;
@@ -69,7 +67,7 @@ fn main() {
             debug_info.add(world.day_cycle.get_debug_info());
             debug_info.add(format!(
                 "Norm Time: {}",
-                world.day_cycle.time / DayCycle::FULL_CYCLE_LENGTH
+                world.day_cycle.time / day_cycle::FULL_CYCLE_LENGTH
             ));
             debug_info.add(format!("Bullets in mag: {}", player.gun.mag.bullets));
             debug_info.add(format!(

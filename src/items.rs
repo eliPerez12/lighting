@@ -28,7 +28,7 @@ impl Gun {
             },
             accuracy: 120.0,
             time_since_shot: 0.0,
-            fire_rate: 1.0/12.0,
+            fire_rate: 1.0 / 12.0,
         }
     }
 }
