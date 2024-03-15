@@ -8,7 +8,6 @@ pub struct Bullet {
     pub pos: Vector2,
     pub vel: Vector2,
     pub collided: Option<Vector2>,
-    pub dbg_lines: Vec<Line>,
     pub dbg_line_hit: Option<Line>,
     pub drag: f32,
 }
@@ -19,7 +18,6 @@ impl Bullet {
             pos,
             vel,
             pos_history: [pos; 3],
-            dbg_lines: vec![],
             dbg_line_hit: None,
             collided: None,
             drag: 12.0,
@@ -48,32 +46,25 @@ impl Bullet {
     }
 
     pub fn handle_collisions(&mut self, rl: &RaylibHandle, world_map: &WorldMap) {
-        // Bullet_y_line is the bullet line if the Y vel is applied
+        let frame_time = rl.get_frame_time();
+        let min_velocity_lost = 0.3;
+    
+        // Calculate bullet lines
         let bullet_y_line = Line {
             start: self.pos,
-            end: self.pos + self.vel * Vector2::new(0.0, 1.0) * rl.get_frame_time(),
+            end: self.pos + self.vel * Vector2::new(0.0, 1.0) * frame_time,
         };
         let bullet_line = Line {
             start: self.pos,
-            end: self.pos + self.vel * rl.get_frame_time(),
+            end: self.pos + self.vel * frame_time,
         };
-        self.dbg_lines = vec![
-            Line {
-                start: self.pos,
-                end: self.pos + self.vel * Vector2::new(3.0, 0.0) * rl.get_frame_time(),
-            },
-            Line {
-                start: self.pos,
-                end: self.pos + self.vel * Vector2::new(0.0, 3.0) * rl.get_frame_time(),
-            },
-        ];
-        // Get all normals from every collison
-        let mut normals = vec![];
+    
+        // Get all normals from every collision
+        let mut normals = Vec::new();
         for (y, line) in world_map.walls.iter().enumerate() {
             for (x, wall) in line.iter().enumerate() {
                 if let Some(wall) = wall {
-                    for rect in wall
-                        .get_collider()
+                    for rect in wall.get_collider()
                         .with_pos(Vector2::new(x as f32 * TILE_SIZE, y as f32 * TILE_SIZE))
                         .rects
                     {
@@ -81,42 +72,35 @@ impl Bullet {
                         for line in lines {
                             // Check for collision
                             if let Some(intersection) = line.intersection(&bullet_line) {
-                                let min_velocity_lost = 0.3;
-                                let velocity_lost =
-                                    rand::thread_rng().gen_range(0.0..=min_velocity_lost);
-                                normals.push((
-                                    intersection,
-                                    if line.intersection(&bullet_y_line).is_some() {
-                                        Vector2::new(velocity_lost, -velocity_lost)
-                                    } else {
-                                        Vector2::new(-velocity_lost, velocity_lost)
-                                    },
-                                    line,
-                                ));
+                                let velocity_lost = rand::thread_rng().gen_range(0.0..=min_velocity_lost);
+                                let normal = if line.intersection(&bullet_y_line).is_some() {
+                                    Vector2::new(velocity_lost, -velocity_lost)
+                                } else {
+                                    Vector2::new(-velocity_lost, velocity_lost)
+                                };
+                                normals.push((intersection, normal, line));
                             }
                         }
                     }
                 }
             }
         }
-        // Sort normals by closest to player
-        let mut closest = 0usize;
-        for (i, normal) in normals.iter().enumerate() {
-            let dist = normal.0.length();
-            if let Some(best_normal) = normals.get(closest) {
-                if best_normal.0.length() > dist {
-                    closest = i;
-                }
-            }
-        }
-        // Get the closest normal and use that as the collision
-        if let Some(normal) = normals.get(closest) {
-            self.collided = Some(normal.1);
-            self.vel *= normal.1;
-            self.pos = normal.0 + self.vel.normalized() * 0.01;
-            self.dbg_line_hit = Some(normal.2.clone());
+    
+        // Find closest normal
+        if let Some((closest_index, _)) = normals.iter()
+            .enumerate()
+            .min_by(|(_, normal1), (_, normal2)| {
+                normal1.0.length().partial_cmp(&normal2.0.length()).unwrap()
+            })
+        {
+            let (intersection, normal, line) = &normals[closest_index];
+            self.collided = Some(*normal);
+            self.vel *= *normal;
+            self.pos = *intersection + self.vel.normalized() * 0.001;
+            self.dbg_line_hit = Some(line.clone());
         }
     }
+    
 
     pub fn get_collider(&self) -> Collider {
         Collider {

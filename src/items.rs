@@ -35,23 +35,23 @@ impl Gun {
 
 pub fn explode(rl: &RaylibHandle, world: &mut World, camera: &Camera2D) {
     let num_shrapnel = 25;
-    let num_random_shrapnel = 15;
+    let num_random_shrapnel = 25;
     let shrapnel_speed = 500.0;
     let shrapnel_speed_margin = 0.3;
+    let mut rng = rand::thread_rng();
+    let mouse_world_pos = camera.to_world(rl.get_mouse_position());
     for i in 0..num_shrapnel {
-        let pos = camera.to_world(rl.get_mouse_position());
         let angle = 2.0 * PI as f32 * (i as f32 / num_shrapnel as f32);
         let vel = Vector2::new(angle.cos(), angle.sin()) * shrapnel_speed;
         let random_vel =
-            rand::thread_rng().gen_range(1.0 - shrapnel_speed_margin..1.0 + shrapnel_speed_margin);
-        world.bullets.push(Bullet::new(pos, vel * random_vel));
+            rng.gen_range(1.0 - shrapnel_speed_margin..1.0 + shrapnel_speed_margin);
+        world.bullets.push(Bullet::new(mouse_world_pos, vel * random_vel));
     }
     for _ in 0..num_random_shrapnel {
-        let pos = camera.to_world(rl.get_mouse_position());
-        let angle = rand::thread_rng().gen_range(0.0..2.0 * PI as f32);
+        let angle = rng.gen_range(0.0..2.0 * PI as f32);
         let random_vel =
-            rand::thread_rng().gen_range(1.0 - shrapnel_speed_margin..1.0 + shrapnel_speed_margin);
+            rng.gen_range(1.0 - shrapnel_speed_margin..1.0 + shrapnel_speed_margin);
         let vel = Vector2::new(angle.cos(), angle.sin()) * shrapnel_speed;
-        world.bullets.push(Bullet::new(pos, vel * random_vel));
+        world.bullets.push(Bullet::new(mouse_world_pos, vel * random_vel));
     }
 }

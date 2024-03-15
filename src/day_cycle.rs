@@ -1,7 +1,7 @@
 use crate::{Light, LightEngine, LightHandle};
 use raylib::prelude::*;
 
-pub const FULL_CYCLE_LENGTH: f32 = 25.0;
+pub const FULL_CYCLE_LENGTH: f32 = 60.0;
 pub const SUNRISE: f32 = 0.0;
 pub const NOON: f32 = 0.25;
 pub const SUNRISE_LENGTH: f32 = 0.09;
@@ -22,7 +22,7 @@ pub struct DayCycle {
 impl DayCycle {
     pub fn new(light_engine: &mut LightEngine) -> DayCycle {
         DayCycle {
-            time: 0.25 * FULL_CYCLE_LENGTH,
+            time: SUNRISE * FULL_CYCLE_LENGTH,
             ambient_light_handle: light_engine.spawn_light(Light::default_ambient()).unwrap(),
         }
     }
@@ -50,6 +50,36 @@ impl DayCycle {
     }
     pub fn get_normilized_time(&self) -> f32 {
         self.time / FULL_CYCLE_LENGTH
+    }
+    pub fn get_shadow_color(&self) -> Color {
+        let normilized_time = self.get_normilized_time();
+        let default_shadow_color = 55.0;
+        Color::new(
+            0,
+            0,
+            0,
+            // Sun rising
+            if normilized_time > 1.0 - SUNRISE_LENGTH {
+                ((normilized_time - (1.0 - SUNRISE_LENGTH)) / SUNRISE_LENGTH * default_shadow_color)
+                    as u8
+            }
+            // Sun setting
+            else if normilized_time > SUNSET {
+                dbg!(
+                    (default_shadow_color
+                        - (((normilized_time) - SUNSET) / SUNSET_LENGTH * default_shadow_color))
+                        as u8
+                )
+            }
+            // Full night time
+            else if (SUNSET + SUNSET_LENGTH..1.0 - SUNRISE_LENGTH).contains(&normilized_time) {
+                0
+            }
+            // Full Day time
+            else {
+                default_shadow_color as u8
+            },
+        )
     }
     pub fn get_ambient_light(&self) -> Light {
         let normilized_time = self.get_normilized_time();

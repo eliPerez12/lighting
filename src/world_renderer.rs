@@ -1,9 +1,5 @@
 use crate::{
-    bullet::Bullet,
-    day_cycle::{self, SUNRISE_LENGTH, SUNSET, SUNSET_LENGTH},
-    player::*,
-    world::*,
-    DebugInfo, ImprovedCamera, Line, WorldMap,
+    bullet::Bullet, day_cycle, player::*, world::*, DebugInfo, ImprovedCamera, Line, WorldMap,
 };
 use raylib::prelude::*;
 
@@ -86,7 +82,7 @@ impl Renderer {
         self.draw_floor(d, thread, &world.map, camera);
         self.draw_wall_shadows(d, thread, world, camera);
         self.draw_walls(d, thread, &world.map, camera);
-        self.draw_player(d, thread, camera, player);
+        self.draw_player(d, thread, camera, world, player);
         self.draw_bullets(&world.bullets, d, thread, camera);
 
         if debug_info.debug {
@@ -104,6 +100,7 @@ impl Renderer {
         d: &mut RaylibDrawHandle,
         thread: &RaylibThread,
         camera: &Camera2D,
+        world: &World,
         player: &Player,
     ) {
         let mut tg = d.begin_texture_mode(thread, &mut self.target);
@@ -114,7 +111,7 @@ impl Renderer {
             player_screen_pos.x as i32,
             player_screen_pos.y as i32,
             8.0 * camera.zoom,
-            Color::new(0, 0, 0, 50),
+            world.day_cycle.get_shadow_color(),
         );
         tg.draw_texture_pro(
             player.get_animation_frame(),
@@ -280,16 +277,6 @@ impl Renderer {
                                 3.0,
                                 Color::GREEN,
                             );
-                            for bullet in world.bullets.iter() {
-                                for dbg_line in bullet.dbg_lines.iter() {
-                                    tg.draw_line_ex(
-                                        camera.to_screen(dbg_line.start),
-                                        camera.to_screen(dbg_line.end),
-                                        3.0,
-                                        Color::GREEN,
-                                    )
-                                }
-                            }
                         }
                     }
                 }
@@ -338,42 +325,9 @@ impl Renderer {
     ) {
         let screen_size = Vector2::new(d.get_screen_width() as f32, d.get_screen_height() as f32);
 
-        let shadow_x_length = 12.0;
-        let shadow_y_length = 6.0;
         let normilized_time = world.day_cycle.get_normilized_time();
-        let default_shadow_color = 55.0;
-
-        let shadow_color = Color::new(
-            0,
-            0,
-            0,
-            // Sun rising
-            if normilized_time > 1.0 - day_cycle::SUNRISE_LENGTH {
-                (
-                    (normilized_time - (1.0 - day_cycle::SUNRISE_LENGTH)) / SUNRISE_LENGTH
-                        * default_shadow_color
-                ) as u8
-            }
-            // Sun setting 
-            else if normilized_time > SUNSET {
-                dbg!(
-                    (default_shadow_color
-                        - (((normilized_time) - SUNSET) / SUNSET_LENGTH * default_shadow_color))
-                        as u8
-                )
-            }
-            // Full night time
-            else if (day_cycle::SUNSET + day_cycle::SUNSET_LENGTH
-                ..1.0 - day_cycle::SUNRISE_LENGTH)
-                .contains(&normilized_time)
-            {
-                0
-            }
-            // Full Day time
-            else {
-                default_shadow_color as u8
-            },
-        );
+        let shadow_color = world.day_cycle.get_shadow_color();
+        let (shadow_x_length, shadow_y_length) = (12.0, 8.0);
 
         let mut shd = d.begin_texture_mode(thread, &mut self.shadow_target);
         shd.clear_background(Color::new(0, 0, 0, 0));
@@ -388,8 +342,11 @@ impl Renderer {
                         .rects
                     {
                         // Before noon
-                        if !(day_cycle::NOON..=1.0 - SUNRISE_LENGTH).contains(&normilized_time) {
-                            let shadow_width = if normilized_time > 1.0 - SUNRISE_LENGTH {
+                        if !(day_cycle::NOON..=1.0 - day_cycle::SUNRISE_LENGTH)
+                            .contains(&normilized_time)
+                        {
+                            let shadow_width = if normilized_time > 1.0 - day_cycle::SUNRISE_LENGTH
+                            {
                                 1.0
                             } else {
                                 1.0 - normilized_time.max(day_cycle::SUNRISE) / 0.25

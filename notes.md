@@ -5,7 +5,6 @@ Zombie survival like COD zombies
 # SHORT TERM
 Add an actual map / add more tiles
 Add props/objects
-Fix daycycle sunrise and sunset to closer to real life
 Add items/hotbar
 Add new normal calculator for lines
 

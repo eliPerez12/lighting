@@ -15,7 +15,7 @@ pub struct Player {
 }
 
 impl Player {
-    pub const RENDER_SIZE: Vector2 = Vector2::new(26.0, 42.0);
+    pub const RENDER_SIZE: Vector2 = Vector2::new(23.4, 37.8);
     pub const COLLIDER_SIZE: f32 = 13.0;
     pub const MUZZLE_FLASH_COLOR: Color = Color::new(255, 87, 51, 255);
     const SPRINT_SPEED: f32 = 60.0;

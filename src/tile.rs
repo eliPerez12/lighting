@@ -22,6 +22,7 @@ pub enum WallVarient {
     WhiteElbow = 3,
     TinyElbow = 4,
     WhiteTinyElbow = 5,
+    WhitePillar = 6,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -56,32 +57,36 @@ pub struct Line {
     pub end: Vector2,
 }
 
+pub fn cross(vector : Vector2, other_vector: Vector2) -> f32 {
+    vector.x * other_vector.y - vector.y * other_vector.x
+}
+
 impl Line {
-    // Function to calculate intersection point between two lines
     pub fn intersection(&self, other: &Line) -> Option<Vector2> {
-        let denominator = (other.end.y - other.start.y) * (self.end.x - self.start.x)
-            - (other.end.x - other.start.x) * (self.end.y - self.start.y);
-        // Check if the lines are parallel
-        if denominator.abs() < 0.0001 {
+        let p = self.start;
+        let q = other.start;
+        let r = self.end - self.start;
+        let s = other.end - other.start;
+    
+        let r_cross_s = cross(r, s);
+        if r_cross_s == 0.0 {
+            // Lines are parallel or coincident
             return None;
         }
-
-        let ua = ((other.end.x - other.start.x) * (self.start.y - other.start.y)
-            - (other.end.y - other.start.y) * (self.start.x - other.start.x))
-            / denominator;
-        let ub = ((self.end.x - self.start.x) * (self.start.y - other.start.y)
-            - (self.end.y - self.start.y) * (self.start.x - other.start.x))
-            / denominator;
-
-        // Check if the intersection point is within the line segments
-        if (0.0..=1.0).contains(&ua) && (0.0..=1.0).contains(&ub) {
-            let x = self.start.x + ua * (self.end.x - self.start.x);
-            let y = self.start.y + ua * (self.end.y - self.start.y);
-            Some(Vector2 { x, y })
+    
+        let q_minus_p = q - p;
+        let t = cross(q_minus_p,s) / r_cross_s;
+        let u = cross(q_minus_p,r) / r_cross_s;
+    
+        if (0.0..=1.0).contains(&t) && (0.0..=1.0).contains(&u) {
+            // Intersection within line segments
+            Some(p + r * t)
         } else {
             None
         }
     }
+    
+    
 
     // Returns lines from a rectangle (Top, Bottom, Left, Right)
     pub fn from_rect(rect: &Rectangle) -> Vec<Line> {
@@ -121,6 +126,7 @@ impl WallVarient {
             3 => Some(WallVarient::WhiteElbow),
             4 => Some(WallVarient::TinyElbow),
             5 => Some(WallVarient::WhiteTinyElbow),
+            6 => Some(WallVarient::WhitePillar),
             _ => None,
         }
     }
@@ -146,6 +152,9 @@ impl Wall {
                     TileRotation::Two => Rectangle::new(0.0, 0.0, 10.0, 10.0),
                     TileRotation::Three => Rectangle::new(22.0, 0.0, 10.0, 10.0),
                 }],
+            },
+            WallVarient::WhitePillar => Collider {
+                rects: vec![Rectangle::new(9.0, 9.0, 14.0, 14.0)],
             },
         }
     }
