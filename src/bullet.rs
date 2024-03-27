@@ -96,7 +96,7 @@ impl Bullet {
             let (intersection, normal, line) = &normals[closest_index];
             self.collided = Some(*normal);
             self.vel *= *normal;
-            self.pos = *intersection + self.vel.normalized() * 0.001;
+            self.pos = *intersection + self.vel.normalized() * -(f32::EPSILON - 1.0);
             self.dbg_line_hit = Some(line.clone());
         }
     }

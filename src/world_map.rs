@@ -17,8 +17,8 @@ impl WorldMap {
         let mut walls = vec![];
         let map = std::fs::File::open(path).unwrap();
         let mut reader = std::io::BufReader::new(map);
-        // Skip first 6 lines of map data
-        for _ in 0..6 {
+        // Skip first 7 lines of map data
+        for _ in 0..7 {
             reader.read_line(&mut String::new()).unwrap();
         }
         // Parsing background layer

@@ -14,7 +14,6 @@ GUI
 Health/Inventory system
 Revamp Daycycle for sunrise/sunsets
 Add dynamically casted shadows
-Add shadow renderer for tiles ( either baked into map or rendered throught the renderer )
 
 
 ```rust

@@ -7,6 +7,11 @@ pub struct Wall {
     pub rotation: TileRotation,
 }
 
+pub struct Object {
+    pos: Vector2,
+    size: Vector2,
+}
+
 #[derive(Debug)]
 pub struct Circle {
     pub x: f32,

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="32" tileheight="32" infinite="0" nextlayerid="4" nextobjectid="1">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="32" tileheight="32" infinite="0" nextlayerid="8" nextobjectid="42">
  <tileset firstgid="1" source="../tiled/floor_tile_sheet.tsx"/>
  <tileset firstgid="65" source="../tiled/wall_tile_sheet.tsx"/>
+ <tileset firstgid="129" source="../tiled/object_tile_sheet.tsx"/>
  <layer id="1" name="Floor" width="30" height="20" locked="1">
   <data encoding="csv">
 2,2,2,2,2,2,2,2684354567,2684354568,2684354568,3221225479,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
@@ -50,4 +51,11 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
+ <objectgroup id="7" name="Objects">
+  <object id="37" gid="129" x="138.25" y="44" width="32" height="32"/>
+  <object id="38" gid="129" x="168.375" y="54.75" width="32" height="32"/>
+  <object id="39" gid="129" x="155" y="67.75" width="32" height="32"/>
+  <object id="40" gid="129" x="135.5" y="74.5" width="32" height="32"/>
+  <object id="41" gid="129" x="150.625" y="78" width="32" height="32"/>
+ </objectgroup>
 </map>
