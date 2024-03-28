@@ -7,11 +7,6 @@ pub struct Wall {
     pub rotation: TileRotation,
 }
 
-pub struct Object {
-    pos: Vector2,
-    size: Vector2,
-}
-
 #[derive(Debug)]
 pub struct Circle {
     pub x: f32,
@@ -62,7 +57,7 @@ pub struct Line {
     pub end: Vector2,
 }
 
-pub fn cross(vector : Vector2, other_vector: Vector2) -> f32 {
+pub fn cross(vector: Vector2, other_vector: Vector2) -> f32 {
     vector.x * other_vector.y - vector.y * other_vector.x
 }
 
@@ -72,17 +67,17 @@ impl Line {
         let q = other.start;
         let r = self.end - self.start;
         let s = other.end - other.start;
-    
+
         let r_cross_s = cross(r, s);
         if r_cross_s == 0.0 {
             // Lines are parallel or coincident
             return None;
         }
-    
+
         let q_minus_p = q - p;
-        let t = cross(q_minus_p,s) / r_cross_s;
-        let u = cross(q_minus_p,r) / r_cross_s;
-    
+        let t = cross(q_minus_p, s) / r_cross_s;
+        let u = cross(q_minus_p, r) / r_cross_s;
+
         if (0.0..=1.0).contains(&t) && (0.0..=1.0).contains(&u) {
             // Intersection within line segments
             Some(p + r * t)
@@ -90,8 +85,6 @@ impl Line {
             None
         }
     }
-    
-    
 
     // Returns lines from a rectangle (Top, Bottom, Left, Right)
     pub fn from_rect(rect: &Rectangle) -> Vec<Line> {

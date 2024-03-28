@@ -48,7 +48,7 @@ impl Bullet {
     pub fn handle_collisions(&mut self, rl: &RaylibHandle, world_map: &WorldMap) {
         let frame_time = rl.get_frame_time();
         let min_velocity_lost = 0.3;
-    
+
         // Calculate bullet lines
         let bullet_y_line = Line {
             start: self.pos,
@@ -58,13 +58,14 @@ impl Bullet {
             start: self.pos,
             end: self.pos + self.vel * frame_time,
         };
-    
+
         // Get all normals from every collision
         let mut normals = Vec::new();
         for (y, line) in world_map.walls.iter().enumerate() {
             for (x, wall) in line.iter().enumerate() {
                 if let Some(wall) = wall {
-                    for rect in wall.get_collider()
+                    for rect in wall
+                        .get_collider()
                         .with_pos(Vector2::new(x as f32 * TILE_SIZE, y as f32 * TILE_SIZE))
                         .rects
                     {
@@ -72,7 +73,8 @@ impl Bullet {
                         for line in lines {
                             // Check for collision
                             if let Some(intersection) = line.intersection(&bullet_line) {
-                                let velocity_lost = rand::thread_rng().gen_range(0.0..=min_velocity_lost);
+                                let velocity_lost =
+                                    rand::thread_rng().gen_range(0.0..=min_velocity_lost);
                                 let normal = if line.intersection(&bullet_y_line).is_some() {
                                     Vector2::new(velocity_lost, -velocity_lost)
                                 } else {
@@ -85,13 +87,15 @@ impl Bullet {
                 }
             }
         }
-    
+
         // Find closest normal
-        if let Some((closest_index, _)) = normals.iter()
-            .enumerate()
-            .min_by(|(_, normal1), (_, normal2)| {
-                normal1.0.length().partial_cmp(&normal2.0.length()).unwrap()
-            })
+        if let Some((closest_index, _)) =
+            normals
+                .iter()
+                .enumerate()
+                .min_by(|(_, normal1), (_, normal2)| {
+                    normal1.0.length().partial_cmp(&normal2.0.length()).unwrap()
+                })
         {
             let (intersection, normal, line) = &normals[closest_index];
             self.collided = Some(*normal);
@@ -100,7 +104,6 @@ impl Bullet {
             self.dbg_line_hit = Some(line.clone());
         }
     }
-    
 
     pub fn get_collider(&self) -> Collider {
         Collider {

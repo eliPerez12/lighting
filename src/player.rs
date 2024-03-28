@@ -1,6 +1,4 @@
-use crate::{
-    items::*, world::World, Collider, ImprovedCamera, Light, LightEngine, LightHandle, WorldMap,
-};
+use crate::{items::*, world::World, Collider, ImprovedCamera, Light, LightEngine, LightHandle};
 use raylib::prelude::*;
 
 pub struct Player {
@@ -10,7 +8,7 @@ pub struct Player {
     animation: PlayerAnimation,
     flashlight: FlashLight,
     pub muzzle_light: LightHandle,
-    pub gun: Gun,
+    pub gun: GunItem,
     pub is_sprinting: bool,
 }
 
@@ -21,7 +19,7 @@ impl Player {
     const SPRINT_SPEED: f32 = 60.0;
     const WALK_SPEED: f32 = 30.0;
     const WALK_ACC: f32 = 3.8;
-    const WALK_DEACC: f32 = 2.3;
+    const WALK_DEACC: f32 = 1.6;
 
     pub fn new(
         rl: &mut RaylibHandle,
@@ -37,7 +35,7 @@ impl Player {
                 light_handle: light_engine.spawn_light(Light::default_cone()).unwrap(),
                 active: false,
             },
-            gun: Gun::new_assult_rifle(),
+            gun: GunItem::DEFAULT_AR15,
             ambient_light: light_engine
                 .spawn_light(Light::Radial {
                     pos: Vector2::zero(),
@@ -80,12 +78,31 @@ impl Player {
         Vector2::new(angle_to_pos.cos(), angle_to_pos.sin())
     }
 
-    pub fn handle_controls(&mut self, rl: &RaylibHandle, world_map: &WorldMap) {
-        self.handle_movement_controls(rl);
+    pub fn update(
+        &mut self,
+        rl: &mut RaylibHandle,
+        light_engine: &mut LightEngine,
+        camera: &Camera2D,
+        world: &mut World,
+    ) {
+        self.update_player_lights(light_engine, rl, camera);
         self.handle_flashlight_controls(rl);
-        world_map.handle_player_collisions(self);
+        self.update_flashlight(rl, camera, light_engine);
+        self.handle_movement_controls(rl);
+        self.handle_gun_controls(rl);
+        world.map.handle_player_collisions(self);
         self.apply_velocity();
         self.animation.handle_animation(rl);
+        self.handle_shooting(light_engine, rl, world, camera);
+    }
+
+    fn handle_gun_controls(&mut self, rl: &RaylibHandle) {
+        if rl.is_key_down(KeyboardKey::KEY_FIVE) {
+            self.gun = GunItem::DEFAULT_AR15;
+        }
+        if rl.is_key_down(KeyboardKey::KEY_SIX) {
+            self.gun = GunItem::DEFAULT_PISTOL;
+        }
     }
 
     fn handle_flashlight_controls(&mut self, rl: &RaylibHandle) {
@@ -96,6 +113,24 @@ impl Player {
 
     fn apply_velocity(&mut self) {
         self.pos += self.vel
+    }
+
+    fn update_player_lights(
+        &mut self,
+        light_engine: &mut LightEngine,
+        rl: &RaylibHandle,
+        camera: &Camera2D,
+    ) {
+        let light = light_engine.get_mut_light(&self.muzzle_light).set_pos(
+            self.pos + self.get_vector_to_screen_pos(rl.get_mouse_position(), camera) * 15.0,
+        );
+        let old_color = light.color();
+        light.set_color(Vector4::new(
+            old_color.x,
+            old_color.y,
+            old_color.w,
+            (old_color.z - (25.0 * rl.get_frame_time())).max(0.0),
+        ));
     }
     fn handle_lighting(
         &mut self,
@@ -141,27 +176,32 @@ impl Player {
         world: &mut World,
         camera: &Camera2D,
     ) {
-        self.gun.time_since_shot += rl.get_frame_time(); // Update time since shot
+        let gun_body = self.gun.get_gun_body();
+        gun_body.time_since_shot += rl.get_frame_time(); // Update time since shot
 
         // If player is trying to reload
         if rl.is_key_pressed(KeyboardKey::KEY_R) {
-            self.gun.mag.bullets = self.gun.mag.max_bullets;
+            gun_body.mag.bullets = gun_body.mag.max_bullets;
         };
-        // If player is trying to shoot
-        let is_shooting = if rl.is_key_down(KeyboardKey::KEY_SPACE) &&
+
+        let trigger_pressed = match gun_body.fire_mode {
+            FireMode::SemiAutomatic => rl.is_key_pressed(KeyboardKey::KEY_E),
+            FireMode::Automatic => rl.is_key_down(KeyboardKey::KEY_E),
+        };
+
+        let mut is_shooting = false;
+
+        if trigger_pressed &&
             // If mag isnt empty
-            self.gun.mag.bullets > 0
-                && self.gun.time_since_shot > self.gun.fire_rate
+            gun_body.mag.bullets > 0
+                && gun_body.time_since_shot > gun_body.fire_rate
                 && self.animation.current_frame == PlayerAnimation::FRAME_AMOUNT
         {
-            // Shoot bullet
+            gun_body.fire_bullet();
             world.spawn_bullet(rl, camera, self);
-            self.gun.mag.bullets -= 1;
-            self.gun.time_since_shot = 0.0;
-            true
-        } else {
-            false
-        };
+            is_shooting = true;
+        }
+
         self.handle_lighting(light_engine, rl, camera, is_shooting);
     }
 

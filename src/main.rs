@@ -48,9 +48,7 @@ fn main() {
 
         // Only update if player inst freezing time
         if !rl.is_key_down(KeyboardKey::KEY_T) {
-            player.handle_controls(&rl, &world.map);
-            player.update_flashlight(&mut rl, &camera, &mut light_engine);
-            player.handle_shooting(&mut light_engine, &rl, &mut world, &camera);
+            player.update(&mut rl, &mut light_engine, &camera, &mut world);
             world.update_bullets(&rl);
 
             if rl.is_key_pressed(KeyboardKey::KEY_G) {
@@ -69,7 +67,6 @@ fn main() {
                 "Norm Time: {}",
                 world.day_cycle.time / day_cycle::FULL_CYCLE_LENGTH
             ));
-            debug_info.add(format!("Bullets in mag: {}", player.gun.mag.bullets));
             debug_info.add(format!(
                 "Spawned lights {}/400",
                 light_engine.spawned_lights()
