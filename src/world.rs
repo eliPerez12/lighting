@@ -34,7 +34,7 @@ impl World {
         let bullet_speed = 1000.0;
         let bullet_speed_accuracy = 10.0;
         let bullet = Bullet::new(
-            player.pos + player.vel + bullet_vel * 15.0,
+            player.pos + player.vel + bullet_vel * player.gun.get_render_barrel_length(),
             bullet_vel
                 * (rng.gen_range(
                     bullet_speed - bullet_speed / bullet_speed_accuracy

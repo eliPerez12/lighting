@@ -3,10 +3,10 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "maps/map0.tmj",
+    "activeFile": "tiled/object_tile_sheet.tsx",
     "expandedProjectPaths": [
-        "maps",
         "tiled",
+        "maps",
         "."
     ],
     "file.lastUsedOpenFilter": "All Files (*)",
@@ -52,7 +52,6 @@
     "last.imagePath": "C:/Users/Eli/Desktop/Projects/lighting/assets/background",
     "map.lastUsedFormat": "json",
     "openFiles": [
-        "maps/map0.tmj",
         "tiled/object_tile_sheet.tsx"
     ],
     "project": "map0.tiled-project",

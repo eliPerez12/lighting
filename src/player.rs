@@ -63,9 +63,11 @@ impl Player {
             }],
         }
     }
-
     pub fn get_animation_frame(&self) -> &Texture2D {
-        &self.animation.frames[self.animation.current_frame]
+        match &self.gun {
+            GunItem::AR15 { .. } => &self.animation.ar15_frames[self.animation.current_frame],
+            GunItem::Pistol { .. } => &self.animation.pistol_frames[self.animation.current_frame],
+        }
     }
 
     pub fn get_angle_to_screen_pos(&self, screen_pos: Vector2, camera: &Camera2D) -> f32 {
@@ -294,7 +296,8 @@ impl Player {
 struct PlayerAnimation {
     current_frame: usize,
     elapsed_time: f32,
-    frames: Vec<Texture2D>,
+    ar15_frames: Vec<Texture2D>,
+    pistol_frames: Vec<Texture2D>,
 }
 
 impl PlayerAnimation {
@@ -303,12 +306,18 @@ impl PlayerAnimation {
 
     fn new(rl: &mut RaylibHandle, thread: &RaylibThread) -> PlayerAnimation {
         PlayerAnimation {
-            frames: (1..=5)
+            ar15_frames: (1..=5)
                 .map(|i| {
-                    rl.load_texture(thread, &format!("assets/player/player_body{i}.png"))
+                    rl.load_texture(thread, &format!("assets/player/player_ar15_{i}.png"))
                         .unwrap()
                 })
                 .collect::<Vec<Texture2D>>(),
+            pistol_frames: (1..=5)
+            .map(|i| {
+                rl.load_texture(thread, &format!("assets/player/player_pistol_{i}.png"))
+                    .unwrap()
+            })
+            .collect::<Vec<Texture2D>>(),
             current_frame: 0,
             elapsed_time: 0.0,
         }

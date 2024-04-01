@@ -83,6 +83,13 @@ impl GunItem {
             GunItem::Pistol { body } => body,
         }
     }
+
+    pub fn get_render_barrel_length(&self) -> f32 {
+        match self {
+            GunItem::AR15 { .. } => 14.5,
+            GunItem::Pistol { .. } => 9.5,
+        }
+    }
 }
 
 pub struct FlashLight {
