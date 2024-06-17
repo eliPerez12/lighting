@@ -21,7 +21,7 @@ impl GunBody {
 #[derive(Debug)]
 pub enum GunItem {
     AR15 { body: GunBody },
-    Pistol { body: GunBody},
+    Pistol { body: GunBody },
 }
 
 #[derive(Debug)]
@@ -62,12 +62,10 @@ impl GunItem {
                 max_bullets: 7,
             },
             fire_mode: FireMode::SemiAutomatic,
-            chamber: Chamber {
-                bullet: true,
-            },
+            chamber: Chamber { bullet: true },
             fire_rate: 1.0 / 12.0,
             time_since_shot: 0.0,
-        }
+        },
     };
 
     pub fn get_accuarcy(&self) -> f32 {

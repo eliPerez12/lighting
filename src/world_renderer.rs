@@ -183,9 +183,9 @@ impl Renderer {
             // Long transparent trail
             tg.draw_line_ex(
                 camera.to_screen(bullet.pos_history[0]),
-                camera.to_screen(bullet.pos_history[2]),
-                5.0,
-                Color::new(0, 0, 0, 100),
+                camera.to_screen(bullet.pos_history[1]),
+                2.0,
+                Color::new(255, 255, 255, 30),
             );
 
             // Bullet

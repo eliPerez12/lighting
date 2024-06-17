@@ -65,11 +65,10 @@ impl DayCycle {
             }
             // Sun setting
             else if normilized_time > SUNSET {
-                dbg!(
-                    (default_shadow_color
-                        - (((normilized_time) - SUNSET) / SUNSET_LENGTH * default_shadow_color))
-                        as u8
-                )
+                (default_shadow_color
+                    - (((normilized_time) - SUNSET) / SUNSET_LENGTH * default_shadow_color))
+                    as u8
+            
             }
             // Full night time
             else if (SUNSET + SUNSET_LENGTH..1.0 - SUNRISE_LENGTH).contains(&normilized_time) {

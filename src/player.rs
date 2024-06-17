@@ -313,11 +313,11 @@ impl PlayerAnimation {
                 })
                 .collect::<Vec<Texture2D>>(),
             pistol_frames: (1..=5)
-            .map(|i| {
-                rl.load_texture(thread, &format!("assets/player/player_pistol_{i}.png"))
-                    .unwrap()
-            })
-            .collect::<Vec<Texture2D>>(),
+                .map(|i| {
+                    rl.load_texture(thread, &format!("assets/player/player_pistol_{i}.png"))
+                        .unwrap()
+                })
+                .collect::<Vec<Texture2D>>(),
             current_frame: 0,
             elapsed_time: 0.0,
         }
